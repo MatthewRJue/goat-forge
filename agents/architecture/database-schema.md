@@ -1,3 +1,11 @@
+The MVP should use this schema with a small seeded dataset.
+
+The seed dataset is only for getting the first playable version working. It should contain representative real teams, eras, players, player versions, and ratings, but it does not need to be complete.
+
+Future production data should be able to populate these same tables without requiring gameplay or UI rewrites.
+
+---
+
 ```mermaid
 erDiagram
     TEAMS ||--o{ PLAYER_VERSIONS : has

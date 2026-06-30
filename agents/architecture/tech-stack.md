@@ -156,6 +156,14 @@ teams
 eras
 players
 player_versions
+player_attributes
+```
+
+For MVP, Supabase should be populated with a small seeded dataset that exercises the core game loop. Full real data population can happen after the MVP proves the gameplay.
+
+Post-MVP tables may include:
+
+```text
 builds
 leaderboards
 users
@@ -305,6 +313,7 @@ Backend
 
 Database
 - Supabase PostgreSQL
+- Seeded MVP data, expandable to real production data
 
 Authentication
 - Supabase Auth

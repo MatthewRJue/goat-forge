@@ -258,6 +258,16 @@ No game history tables are required for MVP.
 
 Game state can be stored in client-side application state.
 
+## MVP Data Population
+
+The database schema should represent the future production model from the start.
+
+For MVP, the database does not need a complete historical NBA dataset. Use a small, curated seed dataset with enough teams, eras, players, player versions, and attributes to make the core game loop playable.
+
+Seeded MVP data should be treated as temporary bootstrap content, not as fake product rules. The app should access it through the same data-access layer that will later read the full real dataset.
+
+Future work can expand or replace the seed data with real production data without changing the gameplay model.
+
 ---
 
 # Technology Stack

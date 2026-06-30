@@ -174,7 +174,7 @@ Create start function
 Suggested MVP story order:
 
 1. Project foundation and app shell
-2. Static seed data for MVP teams, eras, and player versions
+2. Seeded MVP database data for teams, eras, player versions, and attributes
 3. Start game flow
 4. Team and era spin flow
 5. Team and era respin behavior
