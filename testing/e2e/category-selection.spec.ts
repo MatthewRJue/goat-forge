@@ -35,7 +35,10 @@ test("selecting a player completes the selected category", async ({ page }) => {
   await page.getByRole("button", { name: /Shooting/ }).click();
   await page.getByTestId("player-card").first().click();
 
-  await expect(page.getByText("roundComplete")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Round 2 of 5" }),
+  ).toBeVisible();
+  await expect(page.getByText("selectingCategory")).toBeVisible();
   await expect(page.getByTestId("player-pool-panel")).toBeHidden();
   await expect(page.getByTestId("completed-category")).toHaveCount(1);
   await expect(page.getByTestId("completed-category")).toContainText("Shooting");
@@ -43,8 +46,8 @@ test("selecting a player completes the selected category", async ({ page }) => {
     "Magic Johnson",
   );
   await expect(page.getByTestId("completed-category")).toContainText("86");
-  await expect(page.getByTestId("available-category")).toHaveCount(0);
-  await expect(page.getByTestId("locked-category")).toHaveCount(5);
+  await expect(page.getByTestId("available-category")).toHaveCount(4);
+  await expect(page.getByTestId("locked-category")).toHaveCount(1);
 });
 
 test("category selection still works after respins", async ({ page }) => {
