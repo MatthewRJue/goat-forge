@@ -73,13 +73,13 @@ The team and era wheels are being generated or animated.
 
 ### selectingCategory
 
-The team and era have been selected.
+The player has been selected.
 
-The user must choose which unfilled category to use for the round.
+The user must choose which unfilled category to apply from that player's ratings.
 
 ### selectingPlayer
 
-The user has selected a category.
+The team and era have been selected.
 
 The eligible player pool is displayed.
 
@@ -106,6 +106,7 @@ type GameState = {
 
   currentTeam: TeamOption | null;
   currentEra: EraOption | null;
+  selectedPlayerVersion: PlayerOption | null;
   selectedCategory: AttributeCategory | null;
 
   availableCategories: AttributeCategory[];
@@ -271,6 +272,7 @@ const initialGameState: GameState = {
 
   currentTeam: null,
   currentEra: null,
+  selectedPlayerVersion: null,
   selectedCategory: null,
 
   availableCategories: [
@@ -319,7 +321,7 @@ Set currentRound to 1
 Reset all previous game values
 Generate team
 Generate era
-Move to selectingCategory
+Move to selectingPlayer
 ```
 
 ---
@@ -334,8 +336,9 @@ Expected behavior:
 Randomly select one team
 Randomly select one era
 Store both as original and current values
+Set selectedPlayerVersion to null
 Set selectedCategory to null
-Set status to selectingCategory
+Set status to selectingPlayer
 ```
 
 Important:
@@ -352,7 +355,7 @@ Can only be used if:
 
 ```text
 teamRespinAvailable = true
-status = selectingCategory
+status = selectingPlayer
 ```
 
 Expected behavior:
@@ -374,7 +377,7 @@ Can only be used if:
 
 ```text
 eraRespinAvailable = true
-status = selectingCategory
+status = selectingPlayer
 ```
 
 Expected behavior:
@@ -405,28 +408,6 @@ This is allowed.
 
 ---
 
-## Select Category
-
-Allows the user to choose which remaining category to fill.
-
-Can only be used if:
-
-```text
-status = selectingCategory
-category exists in availableCategories
-```
-
-Expected behavior:
-
-```text
-Set selectedCategory
-Set status to selectingPlayer
-Fetch eligible player pool for current team and current era
-Exclude player versions already in usedPlayerVersionIds
-```
-
----
-
 ## Select Player
 
 Allows the user to choose a player from the eligible player pool.
@@ -435,18 +416,40 @@ Can only be used if:
 
 ```text
 status = selectingPlayer
-selectedCategory is not null
 playerVersionId is not in usedPlayerVersionIds
 ```
 
 Expected behavior:
 
 ```text
+Set selectedPlayerVersion
+Set status to selectingCategory
+```
+
+---
+
+## Select Category
+
+Allows the user to choose which remaining category receives the selected player's rating.
+
+Can only be used if:
+
+```text
+status = selectingCategory
+selectedPlayerVersion is not null
+category exists in availableCategories
+```
+
+Expected behavior:
+
+```text
+Set selectedCategory
 Get selected player's rating for selectedCategory
 Create CompletedCategory record
 Add selected playerVersionId to usedPlayerVersionIds
 Remove selectedCategory from availableCategories
 Add RoundResult to roundHistory
+Clear selectedPlayerVersion
 Clear selectedCategory
 Clear currentTeam and currentEra
 ```
@@ -568,7 +571,7 @@ For MVP:
 Users cannot undo completed picks
 ```
 
-Once a player has been selected for a category, that decision is locked.
+Once an attribute has been selected for the chosen player, that completed pick is locked.
 
 ---
 

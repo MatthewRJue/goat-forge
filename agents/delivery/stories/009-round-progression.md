@@ -65,6 +65,8 @@ The `roundComplete` status may be brief or omitted from visible UI if the reduce
 
 Use deterministic test data so E2E can complete a full game without relying on random outcomes.
 
+Flow update: Story 010 revises the ongoing MVP flow so round progression advances between player-first rounds: team and era, player selection, then attribute selection.
+
 ## Tests / Verification
 
 * Run `npm run test:unit`.

@@ -65,6 +65,8 @@ Keep player-pool filtering in `src/lib/game` or a data query wrapper rather than
 
 The exact top-20 ranking methodology can be simple for MVP if seed data is already curated.
 
+Flow update: Story 010 revises the ongoing MVP flow so the player pool appears immediately after team and era selection, before the attribute category is chosen.
+
 ## Tests / Verification
 
 * Run `npm run test:unit`.

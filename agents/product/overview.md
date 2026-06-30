@@ -39,9 +39,9 @@ The game should be easy to learn, fast to play, and highly shareable.
 1. Start a new game.
 2. Random team is selected.
 3. Random era is selected.
-4. A skill category is selected.
-5. User chooses a player from the available player pool.
-6. That player's rating is applied to the user's custom player.
+4. User chooses a player from the available player pool.
+5. A skill category is selected from that player's available attributes.
+6. That player's rating for the selected category is applied to the user's custom player.
 7. Repeat for all categories.
 8. Calculate final overall score.
 9. Determine final rank.
@@ -60,9 +60,6 @@ Miami Heat
 Random Era:
 2010s
 
-Category:
-Defense
-
 Available Players:
 
 * LeBron James
@@ -73,6 +70,9 @@ Available Players:
 
 User Selection:
 LeBron James
+
+Attribute Selection:
+Defense
 
 Result:
 Defense = 94

@@ -67,7 +67,7 @@ For MVP, ratings may be manually seeded final values. The full percentile-based 
 
 Keep player versions distinct from base players. Different versions of the same player may be valid separate picks.
 
-Supabase schema and seed wiring are deferred to Story 013 because the project does not yet have reproducible database setup. Until then, app runtime data is served from local seed modules through query wrappers.
+Supabase schema and seed wiring are deferred to Story 014 because the project does not yet have reproducible database setup. Until then, app runtime data is served from local seed modules through query wrappers.
 
 ## Tests / Verification
 

@@ -1,4 +1,4 @@
-# Story 012: Play Again Flow
+# Story 013: Play Again Flow
 
 ## Status
 
@@ -16,7 +16,7 @@ Allowed statuses:
 
 Stories that must be completed before this story can be worked or finished:
 
-* Story 011: Final Results Screen
+* Story 012: Final Results Screen
 
 ## Goal
 

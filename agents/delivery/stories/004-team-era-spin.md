@@ -65,6 +65,8 @@ The game can use a simple text or card display for the selected team and era. De
 
 If no teams or eras are available, show an actionable error rather than corrupting game state.
 
+Flow update: Story 010 revises the ongoing MVP flow so a successful spin leads to player selection before attribute selection.
+
 ## Tests / Verification
 
 * Run `npm run test:unit`.

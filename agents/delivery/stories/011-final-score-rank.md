@@ -1,4 +1,4 @@
-# Story 010: Final Score And Rank
+# Story 011: Final Score And Rank
 
 ## Status
 
@@ -16,7 +16,7 @@ Allowed statuses:
 
 Stories that must be completed before this story can be worked or finished:
 
-* Story 009: Round Progression
+* Story 010: Player-First Attribute Selection Flow
 
 ## Goal
 

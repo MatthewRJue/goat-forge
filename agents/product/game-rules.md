@@ -10,9 +10,9 @@ During each round:
 
 1. A random NBA team is selected.
 2. A random NBA era is selected.
-3. The user chooses an unfilled category.
-4. The user selects a player from the available player pool.
-5. The selected player's rating is applied to the custom player.
+3. The user selects a player from the available player pool.
+4. The user chooses an unfilled attribute category for that player.
+5. The selected player's rating for that category is applied to the custom player.
 
 After all five categories have been filled, a final score is calculated and the player receives a rank.
 
@@ -105,9 +105,11 @@ Once a category has been assigned a player, it becomes locked.
 
 ---
 
-# Category Selection
+# Player And Attribute Selection
 
-At the start of each round, the user selects which remaining category they wish to fill.
+After the team and era are finalized, the user selects an eligible player from that team-era pool.
+
+After choosing a player, the user selects which remaining category they wish to fill with that player's rating.
 
 Example:
 
@@ -161,16 +163,6 @@ Offer available respins.
 
 ## Step 4
 
-User selects category.
-
-Example:
-
-```text
-Defense
-```
-
-## Step 5
-
 Load player pool.
 
 Example:
@@ -179,7 +171,7 @@ Example:
 2010s Heat Players
 ```
 
-## Step 6
+## Step 5
 
 User selects player.
 
@@ -187,6 +179,16 @@ Example:
 
 ```text
 LeBron James
+```
+
+## Step 6
+
+User selects attribute category.
+
+Example:
+
+```text
+Defense
 ```
 
 ## Step 7

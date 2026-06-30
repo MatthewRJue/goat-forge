@@ -1,4 +1,4 @@
-# Story 013: Supabase Schema and Seed Wiring
+# Story 014: Supabase Schema and Seed Wiring
 
 ## Status
 
@@ -19,7 +19,7 @@ Stories that must be completed before this story can be worked or finished:
 * Story 002: Seed MVP Game Data
 * Story 004: Team and Era Spin
 * Story 007: Player Pool Display
-* Story 008: Player Selection and Attribute Assignment
+* Story 010: Player-First Attribute Selection Flow
 
 ## Goal
 
@@ -45,7 +45,7 @@ Relevant docs:
 
 ## Scope
 
-* Confirm the final MVP data access contract created by Story 002 and exercised by player-pool and player-selection stories.
+* Confirm the final MVP data access contract created by Story 002 and exercised by player-pool and player-first attribute-selection stories.
 * Add Supabase migration or schema setup for `teams`, `eras`, `players`, `player_versions`, and `player_attributes`.
 * Add or update `supabase/seed.sql` with MVP seed records that match the schema and local seed dataset.
 * Ensure local Supabase setup instructions and environment-variable requirements are clear enough for a new developer or agent to run.
@@ -67,7 +67,7 @@ Relevant docs:
 
 ## Implementation Notes
 
-Do this after the local seed-data contract has been used by the spin, player-pool display, and player-selection stories. That timing keeps the database schema aligned with proven gameplay needs instead of guessing too early.
+Do this after the local seed-data contract has been used by the spin, player-pool display, and player-first attribute-selection stories. That timing keeps the database schema aligned with proven gameplay needs instead of guessing too early.
 
 Game logic and React components should continue to consume data through query wrappers. Do not introduce direct Supabase calls into components, reducers, or gameplay rule modules.
 
