@@ -1,0 +1,159 @@
+"use client";
+
+import { useEffect, useReducer } from "react";
+
+import { gameReducer } from "@/lib/game/game-reducer";
+import { createInitialGameState } from "@/lib/game/game-state";
+import type { AttributeCategory, GameState } from "@/lib/game/types";
+
+const categoryLabels: Record<AttributeCategory, string> = {
+  athleticism: "Athleticism",
+  shooting: "Shooting",
+  finishing: "Finishing",
+  playmaking: "Playmaking",
+  defense: "Defense",
+};
+
+export function GameTable() {
+  const [gameState, dispatch] = useReducer(
+    gameReducer,
+    undefined,
+    createInitialGameState,
+  );
+
+  useEffect(() => {
+    dispatch({ type: "START_GAME" });
+  }, []);
+
+  return (
+    <main className="min-h-screen bg-[#171312] px-6 py-10 text-white sm:px-10">
+      <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-5xl flex-col justify-center gap-8">
+        <header className="max-w-3xl">
+          <p className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-[#f2b35e]">
+            Active game
+          </p>
+          <h1 className="text-4xl font-black leading-tight sm:text-5xl">
+            Round {gameState.currentRound || 1} of {gameState.totalRounds}
+          </h1>
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-[#d8cbc1]">
+            Your five-round build is initialized. The next slice will plug in
+            team and era spins for this round.
+          </p>
+        </header>
+
+        <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">
+          <GameStatePanel gameState={gameState} />
+          <ProgressPanel gameState={gameState} dispatchStartGame={dispatch} />
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function GameStatePanel({ gameState }: { gameState: GameState }) {
+  return (
+    <section
+      aria-label="Current game state"
+      className="border-2 border-[#f2b35e] bg-[#211b19] p-5 shadow-[8px_8px_0_#d8623d]"
+    >
+      <div className="grid gap-3 sm:grid-cols-3">
+        <StateMetric label="Status" value={gameState.status} />
+        <StateMetric
+          label="Team respin"
+          value={gameState.respins.teamRespinAvailable ? "Available" : "Used"}
+        />
+        <StateMetric
+          label="Era respin"
+          value={gameState.respins.eraRespinAvailable ? "Available" : "Used"}
+        />
+      </div>
+
+      <div className="mt-6">
+        <h2 className="text-xl font-black">Available Categories</h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {gameState.availableCategories.map((category) => (
+            <div
+              data-testid="available-category"
+              key={category}
+              className="min-h-20 border border-[#4d403b] bg-[#fff8ea] p-4 text-[#171312]"
+            >
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
+                Open slot
+              </p>
+              <p className="mt-2 text-lg font-black">
+                {categoryLabels[category]}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ProgressPanel({
+  gameState,
+  dispatchStartGame,
+}: {
+  gameState: GameState;
+  dispatchStartGame: (action: { type: "START_GAME" }) => void;
+}) {
+  return (
+    <aside
+      aria-label="Build progress"
+      className="border border-[#4d403b] bg-[#211b19] p-5"
+    >
+      <h2 className="text-xl font-black">Build Progress</h2>
+      <dl className="mt-5 space-y-4 text-sm">
+        <ProgressRow
+          label="Completed categories"
+          value={String(gameState.completedCategories.length)}
+        />
+        <ProgressRow
+          label="Used player versions"
+          value={String(gameState.usedPlayerVersionIds.length)}
+        />
+        <ProgressRow
+          label="Round history"
+          value={String(gameState.roundHistory.length)}
+        />
+        <ProgressRow
+          label="Final score"
+          value={gameState.finalScore === null ? "Not set" : String(gameState.finalScore)}
+        />
+        <ProgressRow
+          label="Final rank"
+          value={gameState.finalRank === null ? "Not set" : gameState.finalRank}
+        />
+      </dl>
+
+      <button
+        className="mt-6 inline-flex min-h-12 w-full items-center justify-center bg-white px-5 text-base font-bold text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#f2b35e] focus:ring-offset-2 focus:ring-offset-[#171312]"
+        type="button"
+        onClick={() => dispatchStartGame({ type: "START_GAME" })}
+      >
+        New Game
+      </button>
+    </aside>
+  );
+}
+
+function StateMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border border-[#4d403b] bg-[#171312] p-4">
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#f2b35e]">
+        {label}
+      </p>
+      <p className="mt-2 break-words text-xl font-black">{value}</p>
+    </div>
+  );
+}
+
+function ProgressRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4 border-b border-[#4d403b] pb-3">
+      <dt className="text-[#d8cbc1]">{label}</dt>
+      <dd className="text-right font-black text-white">{value}</dd>
+    </div>
+  );
+}
