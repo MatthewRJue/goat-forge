@@ -274,6 +274,16 @@ Local seed data should mirror the database tables and be easy to migrate into `s
 
 Do not let UI components import these files directly. Route-level data loaders or query wrappers should hide whether data is coming from local seed files or Supabase.
 
+## Seed And Fixture Vocabulary
+
+Use these terms consistently:
+
+* `supabase/seed.sql` - MVP app seed data for real database tables.
+* `src/data/seed` - temporary app bootstrap seed modules before Supabase is wired into the same workflow.
+* `testing/fixtures` - test-only data used by unit or E2E tests.
+
+Do not put app/runtime seed data in `testing/fixtures`.
+
 ## src/types
 
 Contains shared TypeScript types that are used across multiple app areas.

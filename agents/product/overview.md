@@ -44,9 +44,9 @@ The game should be easy to learn, fast to play, and highly shareable.
 6. That player's rating is applied to the user's custom player.
 7. Repeat for all categories.
 8. Calculate final overall score.
-9. Determine win/loss.
+9. Determine final rank.
 10. Show completed GOAT player card.
-11. Allow sharing results.
+11. Allow starting another game.
 
 Typical game length should be 2-5 minutes.
 
@@ -362,7 +362,7 @@ Generate an image displaying:
 * Selected players
 * Category scores
 * Final GOAT score
-* Win/Loss result
+* Final rank
 
 Optimized for social sharing.
 

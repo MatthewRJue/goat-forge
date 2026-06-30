@@ -426,7 +426,8 @@ Placeholder values:
 475-489  Hall of Fame
 460-474  All-Time Great
 440-459  All-Star
-Below 440 Role Player
+420-439  Starter
+Below 420 Role Player
 ```
 
 These thresholds are expected to change based on playtesting.

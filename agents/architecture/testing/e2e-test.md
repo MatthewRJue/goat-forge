@@ -82,6 +82,8 @@ The project should include:
 }
 ```
 
+These scripts may be added by the project foundation story. If they are not present yet, add them before relying on E2E verification.
+
 ---
 
 # Required Playwright Config
@@ -246,14 +248,17 @@ E2E tests should use predictable data.
 Acceptable MVP approaches:
 
 ```text
-use local fixture data
+use test-only fixtures from testing/fixtures
+use deterministic app seed data through test mode
 use a seeded test Supabase project
 mock API responses
 ```
 
 Do not run E2E tests against production data.
 
-For early MVP development, local fixture data or mocked API responses are preferred.
+For early MVP development, test-only fixtures, deterministic app seed data, or mocked API responses are preferred.
+
+Do not put app/runtime seed data in `testing/fixtures`. App seed data belongs in `supabase/seed.sql` or temporary `src/data/seed` modules.
 
 ---
 
@@ -266,7 +271,7 @@ Options:
 ```text
 provide a test mode seed
 mock the random selection API
-use fixture data with predictable random output
+use test-only fixtures or deterministic app seed data with predictable random output
 ```
 
 Recommended approach:

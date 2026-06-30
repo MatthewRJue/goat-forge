@@ -1,8 +1,8 @@
-# GoatLab Tech Stack
+# GOAT Builder Tech Stack
 
 ## Overview
 
-GoatLab is a web application where users build the greatest basketball player of all time by combining attributes from NBA players across different teams and eras.
+GOAT Builder is a web application where users build the greatest basketball player of all time by combining attributes from NBA players across different teams and eras.
 
 The application uses a modern TypeScript-first architecture designed to support rapid development, low operational costs, and future scalability.
 
@@ -103,10 +103,9 @@ src/app/api
 
 Responsibilities:
 
-* Build validation
-* Score calculation
-* Daily challenge generation
-* Leaderboard updates
+* Server-side behavior when a story explicitly requires it
+* Future build validation
+* Future trusted score calculation
 * Future anti-cheat logic
 
 Examples:
@@ -114,11 +113,11 @@ Examples:
 ```text
 POST /api/build
 POST /api/spin
-GET /api/leaderboard
-GET /api/daily
 ```
 
-The backend should contain any game logic that users should not be able to manipulate.
+For MVP, prefer client-side state and local game logic unless a story explicitly needs an API route.
+
+Post-MVP API routes may support leaderboards, daily challenges, saved builds, and competitive validation.
 
 ---
 
@@ -131,10 +130,11 @@ The backend should contain any game logic that users should not be able to manip
 Responsibilities:
 
 * PostgreSQL database
-* Authentication
-* Row-level security
-* File storage
-* Realtime capabilities
+* Seeded MVP game data
+* Future authentication
+* Future row-level security
+* Future file storage
+* Future realtime capabilities
 
 Why:
 
@@ -173,7 +173,15 @@ users
 
 # Authentication
 
+## MVP
+
+The MVP does not require authentication.
+
+Users should be able to play a complete game without registering, logging in, or creating a profile.
+
 ## Supabase Auth
+
+Supabase Auth is a post-MVP option for features that require identity.
 
 Responsibilities:
 
@@ -293,7 +301,7 @@ Supabase      API Routes
 2. Keep architecture simple until complexity requires change.
 3. Prefer Next.js API routes over a separate backend.
 4. Use Supabase as the primary data platform.
-5. Protect all scoring and leaderboard logic on the server.
+5. For MVP, scoring may run locally; move trusted scoring and leaderboard logic server-side when persistence or competition features are added.
 6. Build MVP functionality before optimizing for scale.
 7. Maintain a clean separation between UI, business logic, and data access.
 
@@ -316,7 +324,7 @@ Database
 - Seeded MVP data, expandable to real production data
 
 Authentication
-- Supabase Auth
+- None for MVP
 
 Hosting
 - Vercel

@@ -4,6 +4,8 @@ The seed dataset is only for getting the first playable version working. It shou
 
 Future production data should be able to populate these same tables without requiring gameplay or UI rewrites.
 
+For MVP, `player_attributes` stores the final playable rating for each MVP category. Future versions may add calculated values, manual adjustment values, source metadata, or additional categories after the full rating-generation system is needed.
+
 ---
 
 ```mermaid
@@ -54,8 +56,5 @@ erDiagram
         int finishing
         int playmaking
         int defense
-        int rebounding
-        int size
-        int overall
     }
 ```

@@ -93,6 +93,8 @@ The project should include:
 }
 ```
 
+These scripts may be added by the project foundation story. If they are not present yet, add them before relying on unit-test verification.
+
 ---
 
 # Required Test Areas
