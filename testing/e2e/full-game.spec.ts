@@ -43,6 +43,11 @@ test("player can complete a five-round game without creating a sixth round", asy
     await expect(
       page.getByRole("heading", { name: `Round ${index + 1} of 5` }),
     ).toBeVisible();
+    await expect(page.getByText("selectingPlayer")).toBeVisible();
+    await expect(page.getByTestId("player-card").first()).toBeVisible();
+
+    await page.getByTestId("player-card").first().click();
+
     await expect(page.getByText("selectingCategory")).toBeVisible();
     await expect(page.getByTestId("available-category")).toHaveCount(
       categories.length - index,
@@ -50,10 +55,6 @@ test("player can complete a five-round game without creating a sixth round", asy
 
     await page.getByRole("button", { name: new RegExp(category) }).click();
 
-    await expect(page.getByText("selectingPlayer")).toBeVisible();
-    await expect(page.getByTestId("player-card").first()).toBeVisible();
-
-    await page.getByTestId("player-card").first().click();
     await expect(page.getByTestId("completed-category")).toHaveCount(index + 1);
   }
 

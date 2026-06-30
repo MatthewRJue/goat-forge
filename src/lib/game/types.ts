@@ -87,6 +87,7 @@ export type GameState = {
   originalEra: EraOption | null;
   currentTeam: TeamOption | null;
   currentEra: EraOption | null;
+  selectedPlayerVersion: PlayerOption | null;
   selectedCategory: AttributeCategory | null;
   availableCategories: AttributeCategory[];
   completedCategories: CompletedCategory[];

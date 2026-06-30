@@ -1,10 +1,9 @@
 import { createStartedGameState } from "@/lib/game/game-state";
-import { selectPlayer } from "@/lib/game/select-player";
+import { applySelectedCategory, selectPlayer } from "@/lib/game/select-player";
 import type { RandomFn } from "@/lib/game/random";
 import { applyEraRespin, applyTeamRespin } from "@/lib/game/respins";
 import { createRoundSpin } from "@/lib/game/spin-round";
 import type {
-  AttributeCategory,
   EraOption,
   GameState,
   PlayerOption,
@@ -73,11 +72,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       return {
         ...state,
-        status: "selectingCategory",
+        status: "selectingPlayer",
         originalTeam: result.spin.originalTeam,
         originalEra: result.spin.originalEra,
         currentTeam: result.spin.currentTeam,
         currentEra: result.spin.currentEra,
+        selectedPlayerVersion: null,
+        selectedCategory: null,
         spinError: null,
       };
     }
@@ -94,7 +95,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         random: action.random,
       });
     case "SELECT_CATEGORY":
-      return selectCategory(state, action.category);
+      return applySelectedCategory({ state, category: action.category });
     case "SELECT_PLAYER":
       return selectPlayer({ state, player: action.player });
     case "SPIN_AGAIN_FOR_EMPTY_POOL":
@@ -104,38 +105,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
   }
 }
 
-function selectCategory(
-  state: GameState,
-  category: AttributeCategory,
-): GameState {
-  const completedCategory = state.completedCategories.some(
-    (completed) => completed.category === category,
-  );
-
-  if (
-    state.status !== "selectingCategory" ||
-    !state.currentTeam ||
-    !state.currentEra ||
-    completedCategory ||
-    !state.availableCategories.includes(category)
-  ) {
-    return state;
-  }
-
-  return {
-    ...state,
-    status: "selectingPlayer",
-    selectedCategory: category,
-  };
-}
-
 function spinAgainForEmptyPool(
   state: GameState,
   teams: readonly TeamOption[],
   eras: readonly EraOption[],
   random: RandomFn,
 ): GameState {
-  if (state.status !== "selectingPlayer" || !state.selectedCategory) {
+  if (state.status !== "selectingPlayer") {
     return state;
   }
 
@@ -161,6 +137,7 @@ function spinAgainForEmptyPool(
     originalEra: result.spin.originalEra,
     currentTeam: result.spin.currentTeam,
     currentEra: result.spin.currentEra,
+    selectedPlayerVersion: null,
     spinError: null,
   };
 }

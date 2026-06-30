@@ -23,6 +23,7 @@ const baseGameState = (): Omit<GameState, "status" | "currentRound"> => ({
   originalEra: null,
   currentTeam: null,
   currentEra: null,
+  selectedPlayerVersion: null,
   selectedCategory: null,
   availableCategories: [...MVP_CATEGORIES],
   completedCategories: [],
