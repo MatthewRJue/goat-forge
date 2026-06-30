@@ -67,6 +67,8 @@ Keep respin logic in `src/lib/game`, not inside button handlers. Buttons should 
 
 The MVP does not need to prevent a respin from producing the same value.
 
+Flow update: Story 010 revises the ongoing MVP flow so respins remain available before player selection and are no longer available after the player has been chosen for the round.
+
 ## Tests / Verification
 
 * Run `npm run test:unit`.

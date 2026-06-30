@@ -65,6 +65,8 @@ Use the canonical category ids from `agents/product/game-state.md` in game state
 
 If player pool loading is not complete yet, this story may transition into a placeholder player-selection panel. The real pool behavior is handled by the next story.
 
+Flow update: Story 010 revises the ongoing MVP flow so the player is selected before the attribute category. This completed story remains historical context for the original category-selection slice.
+
 ## Tests / Verification
 
 * Run `npm run test:unit`.

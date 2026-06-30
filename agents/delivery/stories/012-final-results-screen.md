@@ -1,4 +1,4 @@
-# Story 011: Final Results Screen
+# Story 012: Final Results Screen
 
 ## Status
 
@@ -16,7 +16,7 @@ Allowed statuses:
 
 Stories that must be completed before this story can be worked or finished:
 
-* Story 010: Final Score And Rank
+* Story 011: Final Score And Rank
 
 ## Goal
 

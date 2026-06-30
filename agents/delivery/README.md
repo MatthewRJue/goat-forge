@@ -78,15 +78,19 @@ Story files should use a numbered prefix so the implementation order is obvious.
 002-seed-game-data.md
 003-start-game-flow.md
 004-team-era-spin.md
-005-category-selection.md
-006-player-selection.md
-007-attribute-assignment.md
-008-final-results.md
+005-team-era-respins.md
+006-category-selection.md
+007-player-pool-display.md
+008-player-selection-attribute-assignment.md
+009-round-progression.md
+010-player-first-attribute-selection-flow.md
 ```
 
 Use lowercase kebab-case filenames.
 
 Keep numbers stable once created. If a story is removed or replaced, prefer leaving a note in the old story rather than renumbering every later story.
+
+Exception: Story 010 was intentionally inserted after Stories 001-009 to correct the MVP gameplay flow to player-first attribute selection. Later story numbers and dependencies were shifted to keep the next implementation story obvious.
 
 ---
 
@@ -184,8 +188,10 @@ Suggested MVP story order:
 7. Player pool display
 8. Player selection and attribute assignment
 9. Round progression
-10. Final score and rank calculation
-11. Final results screen
-12. Play again flow
+10. Player-first attribute selection flow
+11. Final score and rank calculation
+12. Final results screen
+13. Play again flow
+14. Supabase schema and seed wiring
 
 These can be adjusted as the project becomes clearer, but the first implementation pass should stay focused on the playable MVP loop.

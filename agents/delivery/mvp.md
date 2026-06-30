@@ -127,14 +127,6 @@ Rules:
 
 ---
 
-## Category Selection
-
-The user chooses which remaining category they want to fill.
-
-Categories cannot be selected twice.
-
----
-
 ## Player Selection
 
 The player pool is generated using:
@@ -157,18 +149,26 @@ Previously selected player versions cannot be selected again.
 
 ---
 
+## Attribute Selection
+
+After selecting a player, the user chooses which remaining category they want to fill with that player's rating.
+
+Categories cannot be selected twice.
+
+---
+
 ## Attribute Assignment
 
-Selecting a player applies that player's rating for the selected category.
+Selecting an attribute applies the selected player's rating for that category.
 
 Example:
 
 ```text
-Category:
-Defense
-
 Player:
 2010s Heat LeBron
+
+Attribute:
+Defense
 
 Result:
 Defense = 94

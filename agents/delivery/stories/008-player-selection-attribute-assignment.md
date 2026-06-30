@@ -66,6 +66,8 @@ Player reuse is based on `playerVersionId`, not base `playerId`. This means a di
 
 Keep assignment logic in `src/lib/game` and keep display formatting in components.
 
+Flow update: Story 010 revises the ongoing MVP flow so selecting a player comes first, then the player chooses which remaining attribute receives that player's rating.
+
 ## Tests / Verification
 
 * Run `npm run test:unit`.
