@@ -26,7 +26,7 @@ Logic should be easy to unit test without rendering React, starting Next.js, or 
 
 Game rules should not call Supabase directly.
 
-Database access should be wrapped in small query modules that can be mocked or replaced with fixture data during MVP development.
+Database access should be wrapped in small query modules. During MVP development, those modules may read seeded database records or temporary local seed data, but UI and game logic should not depend on hardcoded sample arrays.
 
 ## Prefer Feature-Oriented UI
 
@@ -51,6 +51,8 @@ Use separate child folders for unit tests, E2E tests, fixtures, and test utiliti
 |   +-- delivery
 |   +-- product
 +-- public
++-- supabase
+|   +-- seed.sql
 +-- src
 |   +-- app
 |   |   +-- api
@@ -66,7 +68,7 @@ Use separate child folders for unit tests, E2E tests, fixtures, and test utiliti
 |   |   +-- results
 |   |   +-- ui
 |   +-- data
-|   |   +-- fixtures
+|   |   +-- seed
 |   +-- lib
 |   |   +-- attributes
 |   |   +-- game
@@ -254,9 +256,9 @@ assert-never.ts
 
 Avoid turning this into a catch-all for domain logic. If a utility knows about game rules, put it in `src/lib/game`.
 
-## src/data/fixtures
+## src/data/seed
 
-Contains local MVP data used by the app during early development.
+Contains local MVP seed data used by the app during early development before Supabase is wired into the same workflow.
 
 Examples:
 
@@ -268,7 +270,19 @@ player-versions.ts
 player-attributes.ts
 ```
 
-Fixture data should be easy to replace with Supabase queries later.
+Local seed data should mirror the database tables and be easy to migrate into `supabase/seed.sql` or replace with Supabase queries later.
+
+Do not let UI components import these files directly. Route-level data loaders or query wrappers should hide whether data is coming from local seed files or Supabase.
+
+## Seed And Fixture Vocabulary
+
+Use these terms consistently:
+
+* `supabase/seed.sql` - MVP app seed data for real database tables.
+* `src/data/seed` - temporary app bootstrap seed modules before Supabase is wired into the same workflow.
+* `testing/fixtures` - test-only data used by unit or E2E tests.
+
+Do not put app/runtime seed data in `testing/fixtures`.
 
 ## src/types
 
@@ -346,7 +360,7 @@ Contains test-only fixture data.
 
 Do not use production Supabase data in tests.
 
-App development fixtures may live in `src/data/fixtures`; test-only fixtures should live in `testing/fixtures`.
+App development seed data may live in `src/data/seed`; test-only fixtures should live in `testing/fixtures`.
 
 ## testing/utils
 
@@ -399,7 +413,8 @@ testing
 ## Seed Data
 
 ```text
-src/data/fixtures
+supabase/seed.sql
+src/data/seed
 testing/fixtures
 ```
 

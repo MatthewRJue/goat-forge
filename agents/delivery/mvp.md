@@ -238,6 +238,22 @@ No user or gameplay history tables are required.
 
 ---
 
+# MVP Data Scope
+
+The MVP should use the real database tables listed above, populated with a small seeded dataset.
+
+The seed data only needs to support the first playable loop:
+
+* Enough teams and eras to make spins feel varied
+* Enough player versions to show valid choices for common team-era combinations
+* Attribute ratings for every seeded player version
+
+The seed dataset is a bootstrap tool for MVP development. It does not need to be exhaustive, historically complete, or final.
+
+Agents should avoid designing the app around hardcoded sample data. Seeded records should flow through the same query or data-loading boundaries that future real data will use.
+
+---
+
 # Required Pages
 
 The MVP should contain only a small number of pages.

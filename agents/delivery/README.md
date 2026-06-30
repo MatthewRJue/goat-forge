@@ -65,6 +65,8 @@ Before implementing a story, read:
 
 The project uses a version of Next.js with breaking changes from common assumptions. Read the relevant local Next.js docs before writing application code.
 
+Use `rg` in `node_modules/next/dist/docs/` to find the guide for the task area, such as routes, layouts, route handlers, server/client components, metadata, images, config, caching, or data fetching.
+
 ---
 
 # Story Naming
@@ -173,8 +175,8 @@ Create start function
 
 Suggested MVP story order:
 
-1. Project foundation and app shell
-2. Static seed data for MVP teams, eras, and player versions
+1. Project foundation, app shell, and test tooling setup
+2. Seeded MVP database data for teams, eras, player versions, and attributes
 3. Start game flow
 4. Team and era spin flow
 5. Team and era respin behavior

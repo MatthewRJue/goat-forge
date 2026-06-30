@@ -434,7 +434,29 @@ Final Athleticism = 97
 
 # Database Structure
 
-The database should store both calculated and final values.
+## MVP Storage
+
+For MVP, the database may store only final playable ratings for the five MVP categories.
+
+Example:
+
+```sql
+player_attributes
+-----------------
+player_version_id
+
+athleticism
+shooting
+finishing
+playmaking
+defense
+```
+
+These final ratings may come from seeded data. MVP implementation does not need the full rating-generation pipeline before the game is playable.
+
+## Future Rating Provenance
+
+When the full attribute generation system is implemented, the database should store calculated, adjustment, and final values.
 
 Example:
 
