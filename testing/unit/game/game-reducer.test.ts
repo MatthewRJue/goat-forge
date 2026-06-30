@@ -7,7 +7,12 @@ import {
   createInitialGameState,
   createStartedGameState,
 } from "@/lib/game/game-state";
-import type { EraOption, GameState, TeamOption } from "@/lib/game/types";
+import type {
+  EraOption,
+  GameState,
+  PlayerOption,
+  TeamOption,
+} from "@/lib/game/types";
 
 const teams: TeamOption[] = [
   { id: "team-1", name: "Example Team", abbreviation: "EXT" },
@@ -18,6 +23,23 @@ const eras: EraOption[] = [
   { id: "era-1", label: "1980s", startYear: 1980, endYear: 1989 },
   { id: "era-2", label: "2020s", startYear: 2020, endYear: 2029 },
 ];
+
+const player: PlayerOption = {
+  playerVersionId: "version-1",
+  playerId: "player-1",
+  name: "Example Player",
+  versionLabel: "1980s Example Player",
+  teamId: "team-1",
+  eraId: "era-1",
+  imageUrl: null,
+  attributes: {
+    athleticism: 91,
+    shooting: 84,
+    finishing: 96,
+    playmaking: 88,
+    defense: 93,
+  },
+};
 
 describe("game reducer", () => {
   it("creates the idle initial state before a game starts", () => {
@@ -339,6 +361,162 @@ describe("game reducer", () => {
     expect(state).toEqual(selectingPlayerState);
   });
 
+  it("selects a player and applies the selected category rating", () => {
+    const selectingPlayerState = createSelectingPlayerState("defense");
+
+    const state = gameReducer(selectingPlayerState, {
+      type: "SELECT_PLAYER",
+      player,
+    });
+
+    expect(state.status).toBe("roundComplete");
+    expect(state.selectedCategory).toBeNull();
+    expect(state.availableCategories).toEqual([
+      "athleticism",
+      "shooting",
+      "finishing",
+      "playmaking",
+    ]);
+    expect(state.completedCategories).toEqual([
+      {
+        category: "defense",
+        playerVersionId: "version-1",
+        playerName: "Example Player",
+        playerVersionLabel: "1980s Example Player",
+        teamName: "Example Team",
+        eraLabel: "1980s",
+        rating: 93,
+      },
+    ]);
+    expect(state.usedPlayerVersionIds).toEqual(["version-1"]);
+    expect(state.roundHistory).toEqual([
+      {
+        roundNumber: 1,
+        originalTeam: teams[0],
+        originalEra: eras[0],
+        finalTeam: teams[0],
+        finalEra: eras[0],
+        teamRespinUsed: false,
+        eraRespinUsed: false,
+        selectedCategory: "defense",
+        selectedPlayerVersionId: "version-1",
+        selectedPlayerName: "Example Player",
+        selectedPlayerVersionLabel: "1980s Example Player",
+        ratingApplied: 93,
+      },
+    ]);
+  });
+
+  it("uses the rating for the selected category instead of the player total", () => {
+    const selectingPlayerState = createSelectingPlayerState("shooting");
+
+    const state = gameReducer(selectingPlayerState, {
+      type: "SELECT_PLAYER",
+      player,
+    });
+
+    expect(state.completedCategories[0]?.rating).toBe(84);
+    expect(state.roundHistory[0]?.ratingApplied).toBe(84);
+  });
+
+  it("records respin usage in round history when selecting a player", () => {
+    const teamRespunState = gameReducer(createSelectingCategoryState(), {
+      type: "USE_TEAM_RESPIN",
+      teams,
+      random: sequenceRandom(0.999),
+    });
+    const eraRespunState = gameReducer(teamRespunState, {
+      type: "USE_ERA_RESPIN",
+      eras,
+      random: sequenceRandom(0.999),
+    });
+    const selectingPlayerState = gameReducer(eraRespunState, {
+      type: "SELECT_CATEGORY",
+      category: "playmaking",
+    });
+    const respunPlayer: PlayerOption = {
+      ...player,
+      teamId: "team-2",
+      eraId: "era-2",
+    };
+
+    const state = gameReducer(selectingPlayerState, {
+      type: "SELECT_PLAYER",
+      player: respunPlayer,
+    });
+
+    expect(state.roundHistory[0]).toMatchObject({
+      originalTeam: teams[0],
+      originalEra: eras[0],
+      finalTeam: teams[1],
+      finalEra: eras[1],
+      teamRespinUsed: true,
+      eraRespinUsed: true,
+      selectedCategory: "playmaking",
+      ratingApplied: 88,
+    });
+  });
+
+  it("does not select a player before player selection starts", () => {
+    const selectingCategoryState = createSelectingCategoryState();
+
+    const state = gameReducer(selectingCategoryState, {
+      type: "SELECT_PLAYER",
+      player,
+    });
+
+    expect(state).toEqual(selectingCategoryState);
+  });
+
+  it("does not select an already used player version", () => {
+    const selectingPlayerState: GameState = {
+      ...createSelectingPlayerState("defense"),
+      usedPlayerVersionIds: ["version-1"],
+    };
+
+    const state = gameReducer(selectingPlayerState, {
+      type: "SELECT_PLAYER",
+      player,
+    });
+
+    expect(state).toEqual(selectingPlayerState);
+  });
+
+  it("allows a different player version for the same base player", () => {
+    const selectingPlayerState: GameState = {
+      ...createSelectingPlayerState("defense"),
+      usedPlayerVersionIds: ["version-old"],
+    };
+    const alternateVersionPlayer: PlayerOption = {
+      ...player,
+      playerVersionId: "version-new",
+      playerId: "player-1",
+    };
+
+    const state = gameReducer(selectingPlayerState, {
+      type: "SELECT_PLAYER",
+      player: alternateVersionPlayer,
+    });
+
+    expect(state.status).toBe("roundComplete");
+    expect(state.usedPlayerVersionIds).toEqual(["version-old", "version-new"]);
+  });
+
+  it("does not select a player outside the current team and era pool", () => {
+    const selectingPlayerState = createSelectingPlayerState("defense");
+    const wrongPoolPlayer: PlayerOption = {
+      ...player,
+      teamId: "team-2",
+    };
+
+    const state = gameReducer(selectingPlayerState, {
+      type: "SELECT_PLAYER",
+      player: wrongPoolPlayer,
+    });
+
+    expect(state).toEqual(selectingPlayerState);
+  });
+
   it("spins again for an empty player pool without consuming respins", () => {
     const selectingPlayerState = gameReducer(createSelectingCategoryState(), {
       type: "SELECT_CATEGORY",
@@ -468,6 +646,13 @@ function createSelectingCategoryState() {
     teams,
     eras,
     random: sequenceRandom(0, 0),
+  });
+}
+
+function createSelectingPlayerState(category: NonNullable<GameState["selectedCategory"]>) {
+  return gameReducer(createSelectingCategoryState(), {
+    type: "SELECT_CATEGORY",
+    category,
   });
 }
 
