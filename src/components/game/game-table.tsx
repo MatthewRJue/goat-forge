@@ -215,6 +215,9 @@ export function GameTable() {
         completedCategories={gameState.completedCategories}
         finalRank={gameState.finalRank}
         finalScore={gameState.finalScore}
+        onPlayAgain={() => {
+          void startGame();
+        }}
       />
     );
   }

@@ -16,12 +16,14 @@ type FinalResultsProps = {
   completedCategories: readonly CompletedCategory[];
   finalRank: GameRank;
   finalScore: number;
+  onPlayAgain: () => void;
 };
 
 export function FinalResults({
   completedCategories,
   finalRank,
   finalScore,
+  onPlayAgain,
 }: FinalResultsProps) {
   return (
     <main className="min-h-screen bg-[#171312] px-6 py-10 text-white sm:px-10">
@@ -86,8 +88,8 @@ export function FinalResults({
 
             <button
               data-testid="play-again-button"
-              className="mt-6 inline-flex min-h-12 w-full items-center justify-center bg-white px-5 text-base font-bold text-[#171312] transition-colors disabled:cursor-not-allowed disabled:bg-[#2c2522] disabled:text-[#95867e]"
-              disabled
+              className="mt-6 inline-flex min-h-12 w-full items-center justify-center bg-white px-5 text-base font-bold text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#f2b35e] focus:ring-offset-2 focus:ring-offset-[#211b19]"
+              onClick={onPlayAgain}
               type="button"
             >
               Play Again
