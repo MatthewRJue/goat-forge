@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useReducer } from "react";
+import { useCallback, useEffect, useReducer } from "react";
 
+import { getEras, getTeams } from "@/data/game-data";
 import { gameReducer } from "@/lib/game/game-reducer";
 import { createInitialGameState } from "@/lib/game/game-state";
 import type { AttributeCategory, GameState } from "@/lib/game/types";
@@ -21,9 +22,22 @@ export function GameTable() {
     createInitialGameState,
   );
 
-  useEffect(() => {
+  const startGame = useCallback(async () => {
     dispatch({ type: "START_GAME" });
+
+    const [teams, eras] = await Promise.all([getTeams(), getEras()]);
+
+    dispatch({
+      type: "SPIN_ROUND",
+      teams,
+      eras,
+      random: Math.random,
+    });
   }, []);
+
+  useEffect(() => {
+    void startGame();
+  }, [startGame]);
 
   return (
     <main className="min-h-screen bg-[#171312] px-6 py-10 text-white sm:px-10">
@@ -36,14 +50,14 @@ export function GameTable() {
             Round {gameState.currentRound || 1} of {gameState.totalRounds}
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-[#d8cbc1]">
-            Your five-round build is initialized. The next slice will plug in
-            team and era spins for this round.
+            The board has dealt your round constraints. Pick the best category
+            for this team and era when the next step opens.
           </p>
         </header>
 
         <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">
           <GameStatePanel gameState={gameState} />
-          <ProgressPanel gameState={gameState} dispatchStartGame={dispatch} />
+          <ProgressPanel gameState={gameState} startGame={startGame} />
         </div>
       </section>
     </main>
@@ -68,6 +82,8 @@ function GameStatePanel({ gameState }: { gameState: GameState }) {
         />
       </div>
 
+      <SpinPanel gameState={gameState} />
+
       <div className="mt-6">
         <h2 className="text-xl font-black">Available Categories</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -91,12 +107,71 @@ function GameStatePanel({ gameState }: { gameState: GameState }) {
   );
 }
 
+function SpinPanel({ gameState }: { gameState: GameState }) {
+  return (
+    <div className="mt-6">
+      <h2 className="text-xl font-black">Round Spin</h2>
+
+      {gameState.spinError ? (
+        <div
+          role="alert"
+          className="mt-4 border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
+        >
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
+            Spin unavailable
+          </p>
+          <p className="mt-2 text-base font-bold">{gameState.spinError.message}</p>
+        </div>
+      ) : null}
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <SpinCard
+          testId="team-display"
+          label="Team"
+          value={
+            gameState.currentTeam
+              ? `${gameState.currentTeam.name} (${gameState.currentTeam.abbreviation})`
+              : "Spinning..."
+          }
+        />
+        <SpinCard
+          testId="era-display"
+          label="Era"
+          value={gameState.currentEra ? gameState.currentEra.label : "Spinning..."}
+        />
+      </div>
+    </div>
+  );
+}
+
+function SpinCard({
+  label,
+  testId,
+  value,
+}: {
+  label: string;
+  testId: string;
+  value: string;
+}) {
+  return (
+    <div
+      data-testid={testId}
+      className="min-h-28 border border-[#4d403b] bg-[#fff8ea] p-4 text-[#171312]"
+    >
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
+        {label}
+      </p>
+      <p className="mt-3 break-words text-2xl font-black">{value}</p>
+    </div>
+  );
+}
+
 function ProgressPanel({
   gameState,
-  dispatchStartGame,
+  startGame,
 }: {
   gameState: GameState;
-  dispatchStartGame: (action: { type: "START_GAME" }) => void;
+  startGame: () => Promise<void>;
 }) {
   return (
     <aside
@@ -130,7 +205,9 @@ function ProgressPanel({
       <button
         className="mt-6 inline-flex min-h-12 w-full items-center justify-center bg-white px-5 text-base font-bold text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#f2b35e] focus:ring-offset-2 focus:ring-offset-[#171312]"
         type="button"
-        onClick={() => dispatchStartGame({ type: "START_GAME" })}
+        onClick={() => {
+          void startGame();
+        }}
       >
         New Game
       </button>
