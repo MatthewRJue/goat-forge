@@ -1,5 +1,7 @@
 import { getPlayerOptionRating } from "@/lib/game/player-pool";
 import type { AttributeCategory, GameState, PlayerOption } from "@/lib/game/types";
+import { calculateFinalRank } from "@/lib/scoring/calculate-final-rank";
+import { calculateFinalScore } from "@/lib/scoring/calculate-final-score";
 
 type SelectPlayerInput = {
   state: GameState;
@@ -99,6 +101,12 @@ export function applySelectedCategory({
   const gameComplete =
     completedCategories.length >= state.totalRounds ||
     availableCategories.length === 0;
+  const finalScore = gameComplete
+    ? calculateFinalScore({
+        completedCategories,
+        totalCategories: state.totalRounds,
+      })
+    : null;
 
   return {
     ...state,
@@ -115,5 +123,7 @@ export function applySelectedCategory({
     usedPlayerVersionIds,
     roundHistory,
     spinError: null,
+    finalScore,
+    finalRank: finalScore === null ? null : calculateFinalRank(finalScore),
   };
 }
