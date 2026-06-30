@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 test("selecting a category reveals the player-selection state", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("goat-builder-test-random", "first");
+  });
   await page.goto("/game");
 
   await expect(page.getByText("selectingCategory")).toBeVisible();
@@ -10,15 +13,21 @@ test("selecting a category reveals the player-selection state", async ({ page })
   await page.getByRole("button", { name: /Shooting/ }).click();
 
   await expect(page.getByText("selectingPlayer")).toBeVisible();
-  await expect(page.getByTestId("player-selection-placeholder")).toBeVisible();
-  await expect(page.getByTestId("player-selection-placeholder")).toContainText(
-    "Shooting",
+  await expect(page.getByTestId("player-pool-panel")).toBeVisible();
+  await expect(page.getByTestId("player-pool-panel")).toContainText("Shooting");
+  await expect(page.getByTestId("player-card")).toHaveCount(2);
+  await expect(page.getByTestId("player-card").first()).toContainText(
+    "Magic Johnson",
   );
+  await expect(page.getByTestId("player-card").first()).toContainText("86");
   await expect(page.getByTestId("available-category")).toHaveCount(0);
   await expect(page.getByTestId("locked-category")).toHaveCount(5);
 });
 
 test("category selection still works after respins", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("goat-builder-test-random", "first");
+  });
   await page.goto("/game");
 
   await expect(page.getByText("selectingCategory")).toBeVisible();
@@ -31,9 +40,8 @@ test("category selection still works after respins", async ({ page }) => {
   await page.getByRole("button", { name: /Defense/ }).click();
 
   await expect(page.getByText("selectingPlayer")).toBeVisible();
-  await expect(page.getByTestId("player-selection-placeholder")).toContainText(
-    "Defense",
-  );
+  await expect(page.getByTestId("player-pool-panel")).toContainText("Defense");
+  await expect(page.getByTestId("player-card")).toHaveCount(2);
   await expect(page.getByTestId("team-respin-button")).toBeDisabled();
   await expect(page.getByTestId("era-respin-button")).toBeDisabled();
 });

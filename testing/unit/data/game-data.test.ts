@@ -82,4 +82,17 @@ describe("MVP game data", () => {
     expect(pool[19].version.id).toBe("fixture-version-20");
     expect(pool[0].totalRating).toBeGreaterThan(pool[19].totalRating);
   });
+
+  it("excludes used player versions before applying the pool limit", () => {
+    const pool = buildPlayerPool(playerPoolFixture, fixtureTeamId, fixtureEraId, {
+      usedPlayerVersionIds: ["fixture-version-1"],
+    });
+
+    expect(pool).toHaveLength(20);
+    expect(pool.map((entry) => entry.version.id)).not.toContain(
+      "fixture-version-1",
+    );
+    expect(pool[0].version.id).toBe("fixture-version-2");
+    expect(pool[19].version.id).toBe("fixture-version-21");
+  });
 });

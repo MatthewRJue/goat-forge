@@ -1,11 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useReducer } from "react";
+import { useCallback, useEffect, useReducer, useState } from "react";
 
-import { getEras, getTeams } from "@/data/game-data";
+import { getEras, getPlayerPool, getTeams } from "@/data/game-data";
 import { gameReducer } from "@/lib/game/game-reducer";
 import { MVP_CATEGORIES, createInitialGameState } from "@/lib/game/game-state";
-import type { AttributeCategory, GameState } from "@/lib/game/types";
+import {
+  buildEligiblePlayerOptions,
+  getPlayerOptionRating,
+} from "@/lib/game/player-pool";
+import type { AttributeCategory, GameState, PlayerOption } from "@/lib/game/types";
 
 const categoryLabels: Record<AttributeCategory, string> = {
   athleticism: "Athleticism",
@@ -15,12 +19,41 @@ const categoryLabels: Record<AttributeCategory, string> = {
   defense: "Defense",
 };
 
+type PlayerPoolState =
+  | {
+      status: "idle";
+    }
+  | {
+      status: "loading";
+    }
+  | {
+      status: "ready";
+      players: PlayerOption[];
+    }
+  | {
+      status: "error";
+      message: string;
+    };
+
+function gameRandom() {
+  const testRandomEnabled =
+    typeof window !== "undefined" &&
+    window.localStorage.getItem("goat-builder-test-random") === "first";
+
+  return process.env.NEXT_PUBLIC_E2E === "1" || testRandomEnabled
+    ? 0
+    : Math.random();
+}
+
 export function GameTable() {
   const [gameState, dispatch] = useReducer(
     gameReducer,
     undefined,
     createInitialGameState,
   );
+  const [playerPoolState, setPlayerPoolState] = useState<PlayerPoolState>({
+    status: "idle",
+  });
 
   const startGame = useCallback(async () => {
     dispatch({ type: "START_GAME" });
@@ -31,7 +64,7 @@ export function GameTable() {
       type: "SPIN_ROUND",
       teams,
       eras,
-      random: Math.random,
+      random: gameRandom,
     });
   }, []);
 
@@ -41,7 +74,7 @@ export function GameTable() {
     dispatch({
       type: "USE_TEAM_RESPIN",
       teams,
-      random: Math.random,
+      random: gameRandom,
     });
   }, []);
 
@@ -51,16 +84,84 @@ export function GameTable() {
     dispatch({
       type: "USE_ERA_RESPIN",
       eras,
-      random: Math.random,
+      random: gameRandom,
     });
   }, []);
 
   const handleCategorySelect = useCallback((category: AttributeCategory) => {
+    setPlayerPoolState({ status: "loading" });
+
     dispatch({
       type: "SELECT_CATEGORY",
       category,
     });
   }, []);
+
+  const handleEmptyPoolSpinAgain = useCallback(async () => {
+    setPlayerPoolState({ status: "loading" });
+
+    const [teams, eras] = await Promise.all([getTeams(), getEras()]);
+
+    dispatch({
+      type: "SPIN_AGAIN_FOR_EMPTY_POOL",
+      teams,
+      eras,
+      random: gameRandom,
+    });
+  }, []);
+
+  const usedPlayerVersionKey = gameState.usedPlayerVersionIds.join("|");
+
+  useEffect(() => {
+    if (
+      gameState.status !== "selectingPlayer" ||
+      !gameState.selectedCategory ||
+      !gameState.currentTeam ||
+      !gameState.currentEra
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void getPlayerPool(gameState.currentTeam.id, gameState.currentEra.id, {
+      usedPlayerVersionIds: gameState.usedPlayerVersionIds,
+    })
+      .then((pool) => {
+        if (cancelled) {
+          return;
+        }
+
+        setPlayerPoolState({
+          status: "ready",
+          players: buildEligiblePlayerOptions({
+            pool,
+            usedPlayerVersionIds: gameState.usedPlayerVersionIds,
+          }),
+        });
+      })
+      .catch(() => {
+        if (cancelled) {
+          return;
+        }
+
+        setPlayerPoolState({
+          status: "error",
+          message: "Player pool unavailable.",
+        });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    gameState.currentEra,
+    gameState.currentTeam,
+    gameState.selectedCategory,
+    gameState.status,
+    gameState.usedPlayerVersionIds,
+    usedPlayerVersionKey,
+  ]);
 
   useEffect(() => {
     void startGame();
@@ -86,8 +187,10 @@ export function GameTable() {
           <GameStatePanel
             gameState={gameState}
             onCategorySelect={handleCategorySelect}
+            onEmptyPoolSpinAgain={handleEmptyPoolSpinAgain}
             onEraRespin={handleEraRespin}
             onTeamRespin={handleTeamRespin}
+            playerPoolState={playerPoolState}
           />
           <ProgressPanel gameState={gameState} startGame={startGame} />
         </div>
@@ -99,13 +202,17 @@ export function GameTable() {
 function GameStatePanel({
   gameState,
   onCategorySelect,
+  onEmptyPoolSpinAgain,
   onEraRespin,
   onTeamRespin,
+  playerPoolState,
 }: {
   gameState: GameState;
   onCategorySelect: (category: AttributeCategory) => void;
+  onEmptyPoolSpinAgain: () => Promise<void>;
   onEraRespin: () => Promise<void>;
   onTeamRespin: () => Promise<void>;
+  playerPoolState: PlayerPoolState;
 }) {
   return (
     <section
@@ -136,7 +243,13 @@ function GameStatePanel({
       />
 
       {gameState.status === "selectingPlayer" && gameState.selectedCategory ? (
-        <PlayerSelectionPlaceholder selectedCategory={gameState.selectedCategory} />
+        <PlayerPoolPanel
+          currentEraLabel={gameState.currentEra?.label ?? "Unknown era"}
+          currentTeamName={gameState.currentTeam?.name ?? "Unknown team"}
+          playerPoolState={playerPoolState}
+          selectedCategory={gameState.selectedCategory}
+          onEmptyPoolSpinAgain={onEmptyPoolSpinAgain}
+        />
       ) : null}
     </section>
   );
@@ -200,24 +313,132 @@ function CategorySelectionPanel({
   );
 }
 
-function PlayerSelectionPlaceholder({
+function PlayerPoolPanel({
+  currentEraLabel,
+  currentTeamName,
+  onEmptyPoolSpinAgain,
+  playerPoolState,
   selectedCategory,
 }: {
+  currentEraLabel: string;
+  currentTeamName: string;
+  onEmptyPoolSpinAgain: () => Promise<void>;
+  playerPoolState: PlayerPoolState;
   selectedCategory: AttributeCategory;
 }) {
+  const selectedCategoryLabel = categoryLabels[selectedCategory];
+
   return (
     <div
-      data-testid="player-selection-placeholder"
+      data-testid="player-pool-panel"
       className="mt-6 border border-[#4d403b] bg-[#171312] p-4"
     >
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#f2b35e]">
-        Player Selection
+        Player Pool
       </p>
-      <p className="mt-2 text-lg font-black text-white">
-        {categoryLabels[selectedCategory]}
-      </p>
-      <p className="mt-1 text-sm font-bold text-[#d8cbc1]">Pool pending</p>
+      <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-lg font-black text-white">{selectedCategoryLabel}</p>
+          <p className="mt-1 text-sm font-bold text-[#d8cbc1]">
+            {currentTeamName} / {currentEraLabel}
+          </p>
+        </div>
+        {playerPoolState.status === "ready" ? (
+          <p className="text-sm font-black text-[#f2b35e]">
+            {playerPoolState.players.length} available
+          </p>
+        ) : null}
+      </div>
+
+      {playerPoolState.status === "loading" ? (
+        <div
+          data-testid="player-pool-loading"
+          className="mt-4 border border-[#4d403b] bg-[#211b19] p-4 text-sm font-bold text-[#d8cbc1]"
+        >
+          Loading player pool
+        </div>
+      ) : null}
+
+      {playerPoolState.status === "error" ? (
+        <div
+          role="alert"
+          className="mt-4 border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
+        >
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
+            Player pool unavailable
+          </p>
+          <p className="mt-2 text-base font-bold">{playerPoolState.message}</p>
+        </div>
+      ) : null}
+
+      {playerPoolState.status === "ready" && playerPoolState.players.length === 0 ? (
+        <div
+          data-testid="player-pool-empty"
+          role="alert"
+          className="mt-4 border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
+        >
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
+            No eligible players found
+          </p>
+          <p className="mt-2 text-base font-bold">
+            {currentTeamName} / {currentEraLabel}
+          </p>
+          <button
+            type="button"
+            className="mt-4 inline-flex min-h-11 items-center justify-center border border-[#171312] bg-[#171312] px-4 text-sm font-black text-white transition-colors hover:bg-[#352b27] focus:outline-none focus:ring-2 focus:ring-[#171312] focus:ring-offset-2 focus:ring-offset-[#fff8ea]"
+            onClick={() => {
+              void onEmptyPoolSpinAgain();
+            }}
+          >
+            Spin Again
+          </button>
+        </div>
+      ) : null}
+
+      {playerPoolState.status === "ready" && playerPoolState.players.length > 0 ? (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {playerPoolState.players.map((player) => (
+            <PlayerCard
+              key={player.playerVersionId}
+              player={player}
+              selectedCategory={selectedCategory}
+            />
+          ))}
+        </div>
+      ) : null}
     </div>
+  );
+}
+
+function PlayerCard({
+  player,
+  selectedCategory,
+}: {
+  player: PlayerOption;
+  selectedCategory: AttributeCategory;
+}) {
+  return (
+    <article
+      data-testid="player-card"
+      className="min-h-32 border border-[#4d403b] bg-[#fff8ea] p-4 text-[#171312]"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-black">{player.name}</h3>
+          <p className="mt-1 text-sm font-bold text-[#7d6d5d]">
+            {player.versionLabel}
+          </p>
+        </div>
+        <div className="min-w-16 border border-[#171312] bg-white px-3 py-2 text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
+            {categoryLabels[selectedCategory]}
+          </p>
+          <p className="text-2xl font-black">
+            {getPlayerOptionRating(player, selectedCategory)}
+          </p>
+        </div>
+      </div>
+    </article>
   );
 }
 

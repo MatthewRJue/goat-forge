@@ -339,6 +339,40 @@ describe("game reducer", () => {
     expect(state).toEqual(selectingPlayerState);
   });
 
+  it("spins again for an empty player pool without consuming respins", () => {
+    const selectingPlayerState = gameReducer(createSelectingCategoryState(), {
+      type: "SELECT_CATEGORY",
+      category: "defense",
+    });
+
+    const state = gameReducer(selectingPlayerState, {
+      type: "SPIN_AGAIN_FOR_EMPTY_POOL",
+      teams,
+      eras,
+      random: sequenceRandom(0.999, 0.999),
+    });
+
+    expect(state.status).toBe("selectingPlayer");
+    expect(state.selectedCategory).toBe("defense");
+    expect(state.currentTeam).toEqual(teams[1]);
+    expect(state.currentEra).toEqual(eras[1]);
+    expect(state.respins).toEqual(selectingPlayerState.respins);
+    expect(state.usedPlayerVersionIds).toEqual([]);
+  });
+
+  it("does not spin again for an empty pool before player selection starts", () => {
+    const selectingCategoryState = createSelectingCategoryState();
+
+    const state = gameReducer(selectingCategoryState, {
+      type: "SPIN_AGAIN_FOR_EMPTY_POOL",
+      teams,
+      eras,
+      random: sequenceRandom(0.999, 0.999),
+    });
+
+    expect(state).toEqual(selectingCategoryState);
+  });
+
   it("does not consume an exhausted team respin again", () => {
     const usedState = gameReducer(createSelectingCategoryState(), {
       type: "USE_TEAM_RESPIN",
