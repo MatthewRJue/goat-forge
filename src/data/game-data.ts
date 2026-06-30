@@ -23,6 +23,11 @@ type PlayerPoolRecords = {
   playerAttributes: PlayerAttributes[];
 };
 
+type BuildPlayerPoolOptions = {
+  limit?: number;
+  usedPlayerVersionIds?: readonly string[];
+};
+
 export async function getTeams(): Promise<Team[]> {
   return [...seedTeams];
 }
@@ -34,6 +39,7 @@ export async function getEras(): Promise<Era[]> {
 export async function getPlayerPool(
   teamId: string,
   eraId: string,
+  options: BuildPlayerPoolOptions = {},
 ): Promise<PlayerPoolEntry[]> {
   return buildPlayerPool(
     {
@@ -43,6 +49,7 @@ export async function getPlayerPool(
     },
     teamId,
     eraId,
+    options,
   );
 }
 
@@ -50,8 +57,10 @@ export function buildPlayerPool(
   records: PlayerPoolRecords,
   teamId: string,
   eraId: string,
-  limit = PLAYER_POOL_LIMIT,
+  options: BuildPlayerPoolOptions = {},
 ): PlayerPoolEntry[] {
+  const { limit = PLAYER_POOL_LIMIT, usedPlayerVersionIds = [] } = options;
+  const usedVersionIds = new Set(usedPlayerVersionIds);
   const playersById = new Map(
     records.players.map((player) => [player.id, player]),
   );
@@ -63,7 +72,12 @@ export function buildPlayerPool(
   );
 
   return records.playerVersions
-    .filter((version) => version.teamId === teamId && version.eraId === eraId)
+    .filter(
+      (version) =>
+        version.teamId === teamId &&
+        version.eraId === eraId &&
+        !usedVersionIds.has(version.id),
+    )
     .map((version) => {
       const player = playersById.get(version.playerId);
       const attributes = attributesByVersionId.get(version.id);
