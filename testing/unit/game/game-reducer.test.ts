@@ -552,6 +552,38 @@ describe("game reducer", () => {
     expect(state.selectedCategory).toBeNull();
   });
 
+  it("stores final score and rank after the fifth completed category", () => {
+    let state = createSelectingPlayerState();
+
+    MVP_CATEGORIES.forEach((category, index) => {
+      state = completeRound(
+        state,
+        category,
+        createPlayerVersionWithRating(
+          index + 1,
+          category,
+          [99, 95, 98, 94, 90][index],
+        ),
+      );
+
+      if (index < MVP_CATEGORIES.length - 1) {
+        expect(state.finalScore).toBeNull();
+        expect(state.finalRank).toBeNull();
+
+        state = gameReducer(state, {
+          type: "SPIN_ROUND",
+          teams,
+          eras,
+          random: sequenceRandom(0, 0),
+        });
+      }
+    });
+
+    expect(state.status).toBe("gameComplete");
+    expect(state.finalScore).toBe(476);
+    expect(state.finalRank).toBe("Hall of Fame");
+  });
+
   it("spins again for an empty player pool without consuming respins", () => {
     const selectingPlayerState = createSelectingPlayerState();
 
@@ -709,6 +741,20 @@ function createPlayerVersion(versionNumber: number): PlayerOption {
   return {
     ...player,
     playerVersionId: `version-${versionNumber}`,
+  };
+}
+
+function createPlayerVersionWithRating(
+  versionNumber: number,
+  category: AttributeCategory,
+  rating: number,
+): PlayerOption {
+  return {
+    ...createPlayerVersion(versionNumber),
+    attributes: {
+      ...player.attributes,
+      [category]: rating,
+    },
   };
 }
 
