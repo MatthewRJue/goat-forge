@@ -248,6 +248,97 @@ describe("game reducer", () => {
     expect(state.availableCategories).toEqual(MVP_CATEGORIES);
   });
 
+  it.each(MVP_CATEGORIES)("selects the %s category for player selection", (category) => {
+    const spunState = createSelectingCategoryState();
+
+    const state = gameReducer(spunState, {
+      type: "SELECT_CATEGORY",
+      category,
+    });
+
+    expect(state.status).toBe("selectingPlayer");
+    expect(state.selectedCategory).toBe(category);
+    expect(state.availableCategories).toEqual(MVP_CATEGORIES);
+    expect(state.completedCategories).toEqual([]);
+    expect(state.roundHistory).toEqual([]);
+    expect(state.finalScore).toBeNull();
+    expect(state.finalRank).toBeNull();
+  });
+
+  it("does not select a category before the round spin completes", () => {
+    const spinningState = createStartedGameState();
+
+    const state = gameReducer(spinningState, {
+      type: "SELECT_CATEGORY",
+      category: "defense",
+    });
+
+    expect(state).toEqual(spinningState);
+  });
+
+  it("does not select a category that is no longer available", () => {
+    const unavailableState: GameState = {
+      ...createSelectingCategoryState(),
+      availableCategories: ["shooting", "finishing", "playmaking", "defense"],
+    };
+
+    const state = gameReducer(unavailableState, {
+      type: "SELECT_CATEGORY",
+      category: "athleticism",
+    });
+
+    expect(state).toEqual(unavailableState);
+  });
+
+  it("does not select a completed category", () => {
+    const completedState: GameState = {
+      ...createSelectingCategoryState(),
+      completedCategories: [
+        {
+          category: "athleticism",
+          playerVersionId: "version-1",
+          playerName: "Example Player",
+          playerVersionLabel: "1980s Example",
+          teamName: "Example Team",
+          eraLabel: "1980s",
+          rating: 96,
+        },
+      ],
+    };
+
+    const state = gameReducer(completedState, {
+      type: "SELECT_CATEGORY",
+      category: "athleticism",
+    });
+
+    expect(state).toEqual(completedState);
+  });
+
+  it("does not let invalid category input corrupt game state", () => {
+    const spunState = createSelectingCategoryState();
+
+    const state = gameReducer(spunState, {
+      type: "SELECT_CATEGORY",
+      category: "rebounding" as never,
+    });
+
+    expect(state).toEqual(spunState);
+  });
+
+  it("does not select another category after player selection starts", () => {
+    const selectingPlayerState = gameReducer(createSelectingCategoryState(), {
+      type: "SELECT_CATEGORY",
+      category: "defense",
+    });
+
+    const state = gameReducer(selectingPlayerState, {
+      type: "SELECT_CATEGORY",
+      category: "shooting",
+    });
+
+    expect(state).toEqual(selectingPlayerState);
+  });
+
   it("does not consume an exhausted team respin again", () => {
     const usedState = gameReducer(createSelectingCategoryState(), {
       type: "USE_TEAM_RESPIN",

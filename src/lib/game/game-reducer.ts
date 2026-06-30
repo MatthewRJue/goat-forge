@@ -2,7 +2,12 @@ import { createStartedGameState } from "@/lib/game/game-state";
 import type { RandomFn } from "@/lib/game/random";
 import { applyEraRespin, applyTeamRespin } from "@/lib/game/respins";
 import { createRoundSpin } from "@/lib/game/spin-round";
-import type { EraOption, GameState, TeamOption } from "@/lib/game/types";
+import type {
+  AttributeCategory,
+  EraOption,
+  GameState,
+  TeamOption,
+} from "@/lib/game/types";
 
 export type GameAction =
   | {
@@ -23,6 +28,10 @@ export type GameAction =
       type: "USE_ERA_RESPIN";
       eras: readonly EraOption[];
       random: RandomFn;
+    }
+  | {
+      type: "SELECT_CATEGORY";
+      category: AttributeCategory;
     };
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
@@ -72,7 +81,34 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         eras: action.eras,
         random: action.random,
       });
+    case "SELECT_CATEGORY":
+      return selectCategory(state, action.category);
     default:
       return state;
   }
+}
+
+function selectCategory(
+  state: GameState,
+  category: AttributeCategory,
+): GameState {
+  const completedCategory = state.completedCategories.some(
+    (completed) => completed.category === category,
+  );
+
+  if (
+    state.status !== "selectingCategory" ||
+    !state.currentTeam ||
+    !state.currentEra ||
+    completedCategory ||
+    !state.availableCategories.includes(category)
+  ) {
+    return state;
+  }
+
+  return {
+    ...state,
+    status: "selectingPlayer",
+    selectedCategory: category,
+  };
 }

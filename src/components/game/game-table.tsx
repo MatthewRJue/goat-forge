@@ -4,7 +4,7 @@ import { useCallback, useEffect, useReducer } from "react";
 
 import { getEras, getTeams } from "@/data/game-data";
 import { gameReducer } from "@/lib/game/game-reducer";
-import { createInitialGameState } from "@/lib/game/game-state";
+import { MVP_CATEGORIES, createInitialGameState } from "@/lib/game/game-state";
 import type { AttributeCategory, GameState } from "@/lib/game/types";
 
 const categoryLabels: Record<AttributeCategory, string> = {
@@ -55,6 +55,13 @@ export function GameTable() {
     });
   }, []);
 
+  const handleCategorySelect = useCallback((category: AttributeCategory) => {
+    dispatch({
+      type: "SELECT_CATEGORY",
+      category,
+    });
+  }, []);
+
   useEffect(() => {
     void startGame();
   }, [startGame]);
@@ -78,6 +85,7 @@ export function GameTable() {
         <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">
           <GameStatePanel
             gameState={gameState}
+            onCategorySelect={handleCategorySelect}
             onEraRespin={handleEraRespin}
             onTeamRespin={handleTeamRespin}
           />
@@ -90,10 +98,12 @@ export function GameTable() {
 
 function GameStatePanel({
   gameState,
+  onCategorySelect,
   onEraRespin,
   onTeamRespin,
 }: {
   gameState: GameState;
+  onCategorySelect: (category: AttributeCategory) => void;
   onEraRespin: () => Promise<void>;
   onTeamRespin: () => Promise<void>;
 }) {
@@ -120,26 +130,94 @@ function GameStatePanel({
         onTeamRespin={onTeamRespin}
       />
 
-      <div className="mt-6">
-        <h2 className="text-xl font-black">Available Categories</h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {gameState.availableCategories.map((category) => (
-            <div
-              data-testid="available-category"
-              key={category}
-              className="min-h-20 border border-[#4d403b] bg-[#fff8ea] p-4 text-[#171312]"
-            >
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
-                Open slot
-              </p>
-              <p className="mt-2 text-lg font-black">
-                {categoryLabels[category]}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
+      <CategorySelectionPanel
+        gameState={gameState}
+        onCategorySelect={onCategorySelect}
+      />
+
+      {gameState.status === "selectingPlayer" && gameState.selectedCategory ? (
+        <PlayerSelectionPlaceholder selectedCategory={gameState.selectedCategory} />
+      ) : null}
     </section>
+  );
+}
+
+function CategorySelectionPanel({
+  gameState,
+  onCategorySelect,
+}: {
+  gameState: GameState;
+  onCategorySelect: (category: AttributeCategory) => void;
+}) {
+  return (
+    <div className="mt-6">
+      <h2 className="text-xl font-black">Categories</h2>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {MVP_CATEGORIES.map((category) => {
+          const completedCategory = gameState.completedCategories.some(
+            (completed) => completed.category === category,
+          );
+          const selectedCategory = gameState.selectedCategory === category;
+          const availableCategory =
+            gameState.status === "selectingCategory" &&
+            !completedCategory &&
+            gameState.availableCategories.includes(category);
+          const buttonLabel = categoryLabels[category];
+          const statusLabel = completedCategory
+            ? "Locked"
+            : selectedCategory
+              ? "Selected"
+              : availableCategory
+                ? "Open slot"
+                : "Unavailable";
+
+          return (
+            <div data-testid="category-card" key={category}>
+              <button
+                data-testid={
+                  availableCategory ? "available-category" : "locked-category"
+                }
+                type="button"
+                disabled={!availableCategory}
+                className="min-h-24 w-full border border-[#4d403b] bg-[#fff8ea] p-4 text-left text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#f2b35e] focus:ring-offset-2 focus:ring-offset-[#211b19] disabled:cursor-not-allowed disabled:bg-[#2c2522] disabled:text-[#95867e]"
+                aria-pressed={selectedCategory}
+                onClick={() => {
+                  onCategorySelect(category);
+                }}
+              >
+                <span className="block text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
+                  {statusLabel}
+                </span>
+                <span className="mt-2 block text-lg font-black">
+                  {buttonLabel}
+                </span>
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function PlayerSelectionPlaceholder({
+  selectedCategory,
+}: {
+  selectedCategory: AttributeCategory;
+}) {
+  return (
+    <div
+      data-testid="player-selection-placeholder"
+      className="mt-6 border border-[#4d403b] bg-[#171312] p-4"
+    >
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#f2b35e]">
+        Player Selection
+      </p>
+      <p className="mt-2 text-lg font-black text-white">
+        {categoryLabels[selectedCategory]}
+      </p>
+      <p className="mt-1 text-sm font-bold text-[#d8cbc1]">Pool pending</p>
+    </div>
   );
 }
 
