@@ -24,6 +24,29 @@ test("selecting a category reveals the player-selection state", async ({ page })
   await expect(page.getByTestId("locked-category")).toHaveCount(5);
 });
 
+test("selecting a player completes the selected category", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("goat-builder-test-random", "first");
+  });
+  await page.goto("/game");
+
+  await expect(page.getByText("selectingCategory")).toBeVisible();
+
+  await page.getByRole("button", { name: /Shooting/ }).click();
+  await page.getByTestId("player-card").first().click();
+
+  await expect(page.getByText("roundComplete")).toBeVisible();
+  await expect(page.getByTestId("player-pool-panel")).toBeHidden();
+  await expect(page.getByTestId("completed-category")).toHaveCount(1);
+  await expect(page.getByTestId("completed-category")).toContainText("Shooting");
+  await expect(page.getByTestId("completed-category")).toContainText(
+    "Magic Johnson",
+  );
+  await expect(page.getByTestId("completed-category")).toContainText("86");
+  await expect(page.getByTestId("available-category")).toHaveCount(0);
+  await expect(page.getByTestId("locked-category")).toHaveCount(5);
+});
+
 test("category selection still works after respins", async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("goat-builder-test-random", "first");

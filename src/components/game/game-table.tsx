@@ -110,6 +110,14 @@ export function GameTable() {
     });
   }, []);
 
+  const handlePlayerSelect = useCallback((player: PlayerOption) => {
+    dispatch({
+      type: "SELECT_PLAYER",
+      player,
+    });
+    setPlayerPoolState({ status: "idle" });
+  }, []);
+
   const usedPlayerVersionKey = gameState.usedPlayerVersionIds.join("|");
 
   useEffect(() => {
@@ -189,6 +197,7 @@ export function GameTable() {
             onCategorySelect={handleCategorySelect}
             onEmptyPoolSpinAgain={handleEmptyPoolSpinAgain}
             onEraRespin={handleEraRespin}
+            onPlayerSelect={handlePlayerSelect}
             onTeamRespin={handleTeamRespin}
             playerPoolState={playerPoolState}
           />
@@ -204,6 +213,7 @@ function GameStatePanel({
   onCategorySelect,
   onEmptyPoolSpinAgain,
   onEraRespin,
+  onPlayerSelect,
   onTeamRespin,
   playerPoolState,
 }: {
@@ -211,6 +221,7 @@ function GameStatePanel({
   onCategorySelect: (category: AttributeCategory) => void;
   onEmptyPoolSpinAgain: () => Promise<void>;
   onEraRespin: () => Promise<void>;
+  onPlayerSelect: (player: PlayerOption) => void;
   onTeamRespin: () => Promise<void>;
   playerPoolState: PlayerPoolState;
 }) {
@@ -249,6 +260,7 @@ function GameStatePanel({
           playerPoolState={playerPoolState}
           selectedCategory={gameState.selectedCategory}
           onEmptyPoolSpinAgain={onEmptyPoolSpinAgain}
+          onPlayerSelect={onPlayerSelect}
         />
       ) : null}
     </section>
@@ -317,12 +329,14 @@ function PlayerPoolPanel({
   currentEraLabel,
   currentTeamName,
   onEmptyPoolSpinAgain,
+  onPlayerSelect,
   playerPoolState,
   selectedCategory,
 }: {
   currentEraLabel: string;
   currentTeamName: string;
   onEmptyPoolSpinAgain: () => Promise<void>;
+  onPlayerSelect: (player: PlayerOption) => void;
   playerPoolState: PlayerPoolState;
   selectedCategory: AttributeCategory;
 }) {
@@ -400,6 +414,7 @@ function PlayerPoolPanel({
           {playerPoolState.players.map((player) => (
             <PlayerCard
               key={player.playerVersionId}
+              onSelect={onPlayerSelect}
               player={player}
               selectedCategory={selectedCategory}
             />
@@ -411,16 +426,22 @@ function PlayerPoolPanel({
 }
 
 function PlayerCard({
+  onSelect,
   player,
   selectedCategory,
 }: {
+  onSelect: (player: PlayerOption) => void;
   player: PlayerOption;
   selectedCategory: AttributeCategory;
 }) {
   return (
-    <article
+    <button
       data-testid="player-card"
-      className="min-h-32 border border-[#4d403b] bg-[#fff8ea] p-4 text-[#171312]"
+      type="button"
+      className="min-h-32 w-full border border-[#4d403b] bg-[#fff8ea] p-4 text-left text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#f2b35e] focus:ring-offset-2 focus:ring-offset-[#171312]"
+      onClick={() => {
+        onSelect(player);
+      }}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -438,7 +459,7 @@ function PlayerCard({
           </p>
         </div>
       </div>
-    </article>
+    </button>
   );
 }
 
@@ -599,6 +620,52 @@ function ProgressPanel({
           value={gameState.finalRank === null ? "Not set" : gameState.finalRank}
         />
       </dl>
+
+      <div className="mt-6">
+        <h3 className="text-sm font-black uppercase tracking-[0.14em] text-[#f2b35e]">
+          Active Build
+        </h3>
+        {gameState.completedCategories.length === 0 ? (
+          <p className="mt-3 border border-[#4d403b] bg-[#171312] p-4 text-sm font-bold text-[#d8cbc1]">
+            No categories completed
+          </p>
+        ) : (
+          <div className="mt-3 space-y-3">
+            {gameState.completedCategories.map((completedCategory) => (
+              <div
+                data-testid="completed-category"
+                key={completedCategory.category}
+                className="border border-[#4d403b] bg-[#171312] p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#f2b35e]">
+                      {categoryLabels[completedCategory.category]}
+                    </p>
+                    <p className="mt-2 text-base font-black text-white">
+                      {completedCategory.playerName}
+                    </p>
+                    <p className="mt-1 text-xs font-bold text-[#d8cbc1]">
+                      {completedCategory.playerVersionLabel}
+                    </p>
+                    <p className="mt-1 text-xs font-bold text-[#95867e]">
+                      {completedCategory.teamName} / {completedCategory.eraLabel}
+                    </p>
+                  </div>
+                  <div className="min-w-16 border border-[#f2b35e] bg-[#fff8ea] px-3 py-2 text-center text-[#171312]">
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
+                      Rating
+                    </p>
+                    <p className="text-2xl font-black">
+                      {completedCategory.rating}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <button
         className="mt-6 inline-flex min-h-12 w-full items-center justify-center bg-white px-5 text-base font-bold text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#f2b35e] focus:ring-offset-2 focus:ring-offset-[#171312]"
