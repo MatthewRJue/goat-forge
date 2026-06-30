@@ -36,6 +36,21 @@ type PlayerPoolState =
     };
 
 function gameRandom() {
+  const testRandomSequence =
+    typeof window !== "undefined"
+      ? window.localStorage.getItem("goat-builder-test-random-sequence")
+      : null;
+
+  if (testRandomSequence) {
+    const [nextValue, ...remainingValues] = testRandomSequence.split(",");
+    window.localStorage.setItem(
+      "goat-builder-test-random-sequence",
+      remainingValues.join(","),
+    );
+
+    return Number(nextValue);
+  }
+
   const testRandomEnabled =
     typeof window !== "undefined" &&
     window.localStorage.getItem("goat-builder-test-random") === "first";
@@ -56,16 +71,8 @@ export function GameTable() {
   });
 
   const startGame = useCallback(async () => {
+    setPlayerPoolState({ status: "idle" });
     dispatch({ type: "START_GAME" });
-
-    const [teams, eras] = await Promise.all([getTeams(), getEras()]);
-
-    dispatch({
-      type: "SPIN_ROUND",
-      teams,
-      eras,
-      random: gameRandom,
-    });
   }, []);
 
   const handleTeamRespin = useCallback(async () => {
@@ -119,6 +126,33 @@ export function GameTable() {
   }, []);
 
   const usedPlayerVersionKey = gameState.usedPlayerVersionIds.join("|");
+
+  useEffect(() => {
+    if (gameState.status !== "spinning" || gameState.currentRound === 0) {
+      return;
+    }
+
+    let cancelled = false;
+
+    setPlayerPoolState({ status: "idle" });
+
+    void Promise.all([getTeams(), getEras()]).then(([teams, eras]) => {
+      if (cancelled) {
+        return;
+      }
+
+      dispatch({
+        type: "SPIN_ROUND",
+        teams,
+        eras,
+        random: gameRandom,
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [gameState.currentRound, gameState.status]);
 
   useEffect(() => {
     if (

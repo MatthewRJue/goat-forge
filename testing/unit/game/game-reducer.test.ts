@@ -369,7 +369,12 @@ describe("game reducer", () => {
       player,
     });
 
-    expect(state.status).toBe("roundComplete");
+    expect(state.status).toBe("spinning");
+    expect(state.currentRound).toBe(2);
+    expect(state.originalTeam).toBeNull();
+    expect(state.originalEra).toBeNull();
+    expect(state.currentTeam).toBeNull();
+    expect(state.currentEra).toBeNull();
     expect(state.selectedCategory).toBeNull();
     expect(state.availableCategories).toEqual([
       "athleticism",
@@ -455,6 +460,13 @@ describe("game reducer", () => {
       selectedCategory: "playmaking",
       ratingApplied: 88,
     });
+    expect(state.respins).toEqual({
+      teamRespinAvailable: false,
+      eraRespinAvailable: false,
+      teamRespinUsedRound: 1,
+      eraRespinUsedRound: 1,
+    });
+    expect(state.currentRound).toBe(2);
   });
 
   it("does not select a player before player selection starts", () => {
@@ -498,8 +510,53 @@ describe("game reducer", () => {
       player: alternateVersionPlayer,
     });
 
-    expect(state.status).toBe("roundComplete");
+    expect(state.status).toBe("spinning");
     expect(state.usedPlayerVersionIds).toEqual(["version-old", "version-new"]);
+  });
+
+  it("advances through exactly five rounds and completes the game", () => {
+    let state = createSelectingCategoryState();
+
+    MVP_CATEGORIES.forEach((category, index) => {
+      state = completeRound(state, category, createPlayerVersion(index + 1));
+
+      if (index < MVP_CATEGORIES.length - 1) {
+        expect(state.status).toBe("spinning");
+        expect(state.currentRound).toBe(index + 2);
+        expect(state.originalTeam).toBeNull();
+        expect(state.originalEra).toBeNull();
+        expect(state.currentTeam).toBeNull();
+        expect(state.currentEra).toBeNull();
+
+        state = gameReducer(state, {
+          type: "SPIN_ROUND",
+          teams,
+          eras,
+          random: sequenceRandom(0, 0),
+        });
+      }
+    });
+
+    expect(state.status).toBe("gameComplete");
+    expect(state.currentRound).toBe(MVP_TOTAL_ROUNDS);
+    expect(state.availableCategories).toEqual([]);
+    expect(state.completedCategories.map((item) => item.category)).toEqual(
+      MVP_CATEGORIES,
+    );
+    expect(state.usedPlayerVersionIds).toEqual([
+      "version-1",
+      "version-2",
+      "version-3",
+      "version-4",
+      "version-5",
+    ]);
+    expect(state.roundHistory).toHaveLength(MVP_TOTAL_ROUNDS);
+    expect(state.roundHistory.at(-1)?.roundNumber).toBe(MVP_TOTAL_ROUNDS);
+    expect(state.originalTeam).toBeNull();
+    expect(state.originalEra).toBeNull();
+    expect(state.currentTeam).toBeNull();
+    expect(state.currentEra).toBeNull();
+    expect(state.selectedCategory).toBeNull();
   });
 
   it("does not select a player outside the current team and era pool", () => {
@@ -654,6 +711,29 @@ function createSelectingPlayerState(category: NonNullable<GameState["selectedCat
     type: "SELECT_CATEGORY",
     category,
   });
+}
+
+function completeRound(
+  state: GameState,
+  category: NonNullable<GameState["selectedCategory"]>,
+  selectedPlayer: PlayerOption,
+) {
+  const selectingPlayerState = gameReducer(state, {
+    type: "SELECT_CATEGORY",
+    category,
+  });
+
+  return gameReducer(selectingPlayerState, {
+    type: "SELECT_PLAYER",
+    player: selectedPlayer,
+  });
+}
+
+function createPlayerVersion(versionNumber: number): PlayerOption {
+  return {
+    ...player,
+    playerVersionId: `version-${versionNumber}`,
+  };
 }
 
 function sequenceRandom(...values: number[]) {
