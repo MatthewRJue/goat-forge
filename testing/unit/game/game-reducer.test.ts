@@ -182,6 +182,129 @@ describe("game reducer", () => {
     expect(state.currentEra).toBeNull();
     expect(state.spinError?.message).toContain("No teams");
   });
+
+  it("uses one team respin and keeps the current era unchanged", () => {
+    const spunState = createSelectingCategoryState();
+
+    const state = gameReducer(spunState, {
+      type: "USE_TEAM_RESPIN",
+      teams,
+      random: sequenceRandom(0.999),
+    });
+
+    expect(state.currentTeam).toEqual(teams[1]);
+    expect(state.currentEra).toEqual(spunState.currentEra);
+    expect(state.originalTeam).toEqual(spunState.originalTeam);
+    expect(state.originalEra).toEqual(spunState.originalEra);
+    expect(state.respins.teamRespinAvailable).toBe(false);
+    expect(state.respins.teamRespinUsedRound).toBe(1);
+    expect(state.respins.eraRespinAvailable).toBe(true);
+    expect(state.respins.eraRespinUsedRound).toBeNull();
+    expect(state.status).toBe("selectingCategory");
+  });
+
+  it("uses one era respin and keeps the current team unchanged", () => {
+    const spunState = createSelectingCategoryState();
+
+    const state = gameReducer(spunState, {
+      type: "USE_ERA_RESPIN",
+      eras,
+      random: sequenceRandom(0.999),
+    });
+
+    expect(state.currentTeam).toEqual(spunState.currentTeam);
+    expect(state.currentEra).toEqual(eras[1]);
+    expect(state.originalTeam).toEqual(spunState.originalTeam);
+    expect(state.originalEra).toEqual(spunState.originalEra);
+    expect(state.respins.teamRespinAvailable).toBe(true);
+    expect(state.respins.teamRespinUsedRound).toBeNull();
+    expect(state.respins.eraRespinAvailable).toBe(false);
+    expect(state.respins.eraRespinUsedRound).toBe(1);
+    expect(state.status).toBe("selectingCategory");
+  });
+
+  it("allows both respins during the same round", () => {
+    const teamRespunState = gameReducer(createSelectingCategoryState(), {
+      type: "USE_TEAM_RESPIN",
+      teams,
+      random: sequenceRandom(0.999),
+    });
+
+    const state = gameReducer(teamRespunState, {
+      type: "USE_ERA_RESPIN",
+      eras,
+      random: sequenceRandom(0.999),
+    });
+
+    expect(state.currentTeam).toEqual(teams[1]);
+    expect(state.currentEra).toEqual(eras[1]);
+    expect(state.respins).toEqual({
+      teamRespinAvailable: false,
+      eraRespinAvailable: false,
+      teamRespinUsedRound: 1,
+      eraRespinUsedRound: 1,
+    });
+    expect(state.status).toBe("selectingCategory");
+    expect(state.availableCategories).toEqual(MVP_CATEGORIES);
+  });
+
+  it("does not consume an exhausted team respin again", () => {
+    const usedState = gameReducer(createSelectingCategoryState(), {
+      type: "USE_TEAM_RESPIN",
+      teams,
+      random: sequenceRandom(0.999),
+    });
+
+    const state = gameReducer(usedState, {
+      type: "USE_TEAM_RESPIN",
+      teams,
+      random: sequenceRandom(0),
+    });
+
+    expect(state).toEqual(usedState);
+  });
+
+  it("does not consume an exhausted era respin again", () => {
+    const usedState = gameReducer(createSelectingCategoryState(), {
+      type: "USE_ERA_RESPIN",
+      eras,
+      random: sequenceRandom(0.999),
+    });
+
+    const state = gameReducer(usedState, {
+      type: "USE_ERA_RESPIN",
+      eras,
+      random: sequenceRandom(0),
+    });
+
+    expect(state).toEqual(usedState);
+  });
+
+  it("does not consume respins outside category selection", () => {
+    const spinningState = createStartedGameState();
+
+    const state = gameReducer(spinningState, {
+      type: "USE_TEAM_RESPIN",
+      teams,
+      random: sequenceRandom(0.999),
+    });
+
+    expect(state).toEqual(spinningState);
+  });
+
+  it("allows a team respin to return the same team", () => {
+    const spunState = createSelectingCategoryState();
+
+    const state = gameReducer(spunState, {
+      type: "USE_TEAM_RESPIN",
+      teams,
+      random: sequenceRandom(0),
+    });
+
+    expect(state.currentTeam).toEqual(spunState.currentTeam);
+    expect(state.respins.teamRespinAvailable).toBe(false);
+    expect(state.respins.teamRespinUsedRound).toBe(1);
+  });
 });
 
 function expectStartedState(state: GameState) {
@@ -212,6 +335,15 @@ function expectStartedState(state: GameState) {
   expect(state.spinError).toBeNull();
   expect(state.finalScore).toBeNull();
   expect(state.finalRank).toBeNull();
+}
+
+function createSelectingCategoryState() {
+  return gameReducer(createStartedGameState(), {
+    type: "SPIN_ROUND",
+    teams,
+    eras,
+    random: sequenceRandom(0, 0),
+  });
 }
 
 function sequenceRandom(...values: number[]) {
