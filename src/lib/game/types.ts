@@ -52,6 +52,10 @@ export type RespinState = {
   eraRespinUsedRound: number | null;
 };
 
+export type SpinError = {
+  message: string;
+};
+
 export type RoundResult = {
   roundNumber: number;
   originalTeam: TeamOption;
@@ -79,6 +83,8 @@ export type GameState = {
   status: GameStatus;
   currentRound: number;
   totalRounds: number;
+  originalTeam: TeamOption | null;
+  originalEra: EraOption | null;
   currentTeam: TeamOption | null;
   currentEra: EraOption | null;
   selectedCategory: AttributeCategory | null;
@@ -87,6 +93,7 @@ export type GameState = {
   usedPlayerVersionIds: string[];
   respins: RespinState;
   roundHistory: RoundResult[];
+  spinError: SpinError | null;
   finalScore: number | null;
   finalRank: GameRank | null;
 };

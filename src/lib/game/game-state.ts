@@ -19,6 +19,8 @@ const initialRespins = (): RespinState => ({
 
 const baseGameState = (): Omit<GameState, "status" | "currentRound"> => ({
   totalRounds: MVP_TOTAL_ROUNDS,
+  originalTeam: null,
+  originalEra: null,
   currentTeam: null,
   currentEra: null,
   selectedCategory: null,
@@ -27,6 +29,7 @@ const baseGameState = (): Omit<GameState, "status" | "currentRound"> => ({
   usedPlayerVersionIds: [],
   respins: initialRespins(),
   roundHistory: [],
+  spinError: null,
   finalScore: null,
   finalRank: null,
 });
