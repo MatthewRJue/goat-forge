@@ -10,6 +10,7 @@ import {
   getPlayerOptionRating,
 } from "@/lib/game/player-pool";
 import type { AttributeCategory, GameState, PlayerOption } from "@/lib/game/types";
+import { FinalResults } from "@/components/results/final-results";
 
 const categoryLabels: Record<AttributeCategory, string> = {
   athleticism: "Athleticism",
@@ -203,6 +204,20 @@ export function GameTable() {
     gameState.usedPlayerVersionIds,
     usedPlayerVersionKey,
   ]);
+
+  if (
+    gameState.status === "gameComplete" &&
+    gameState.finalScore !== null &&
+    gameState.finalRank !== null
+  ) {
+    return (
+      <FinalResults
+        completedCategories={gameState.completedCategories}
+        finalRank={gameState.finalRank}
+        finalScore={gameState.finalScore}
+      />
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#171312] px-6 py-10 text-white sm:px-10">
