@@ -1,5 +1,6 @@
 import { createStartedGameState } from "@/lib/game/game-state";
 import type { RandomFn } from "@/lib/game/random";
+import { applyEraRespin, applyTeamRespin } from "@/lib/game/respins";
 import { createRoundSpin } from "@/lib/game/spin-round";
 import type { EraOption, GameState, TeamOption } from "@/lib/game/types";
 
@@ -10,6 +11,16 @@ export type GameAction =
   | {
       type: "SPIN_ROUND";
       teams: readonly TeamOption[];
+      eras: readonly EraOption[];
+      random: RandomFn;
+    }
+  | {
+      type: "USE_TEAM_RESPIN";
+      teams: readonly TeamOption[];
+      random: RandomFn;
+    }
+  | {
+      type: "USE_ERA_RESPIN";
       eras: readonly EraOption[];
       random: RandomFn;
     };
@@ -49,6 +60,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         spinError: null,
       };
     }
+    case "USE_TEAM_RESPIN":
+      return applyTeamRespin({
+        state,
+        teams: action.teams,
+        random: action.random,
+      });
+    case "USE_ERA_RESPIN":
+      return applyEraRespin({
+        state,
+        eras: action.eras,
+        random: action.random,
+      });
     default:
       return state;
   }

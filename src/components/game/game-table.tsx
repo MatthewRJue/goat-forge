@@ -35,6 +35,26 @@ export function GameTable() {
     });
   }, []);
 
+  const handleTeamRespin = useCallback(async () => {
+    const teams = await getTeams();
+
+    dispatch({
+      type: "USE_TEAM_RESPIN",
+      teams,
+      random: Math.random,
+    });
+  }, []);
+
+  const handleEraRespin = useCallback(async () => {
+    const eras = await getEras();
+
+    dispatch({
+      type: "USE_ERA_RESPIN",
+      eras,
+      random: Math.random,
+    });
+  }, []);
+
   useEffect(() => {
     void startGame();
   }, [startGame]);
@@ -56,7 +76,11 @@ export function GameTable() {
         </header>
 
         <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">
-          <GameStatePanel gameState={gameState} />
+          <GameStatePanel
+            gameState={gameState}
+            onEraRespin={handleEraRespin}
+            onTeamRespin={handleTeamRespin}
+          />
           <ProgressPanel gameState={gameState} startGame={startGame} />
         </div>
       </section>
@@ -64,7 +88,15 @@ export function GameTable() {
   );
 }
 
-function GameStatePanel({ gameState }: { gameState: GameState }) {
+function GameStatePanel({
+  gameState,
+  onEraRespin,
+  onTeamRespin,
+}: {
+  gameState: GameState;
+  onEraRespin: () => Promise<void>;
+  onTeamRespin: () => Promise<void>;
+}) {
   return (
     <section
       aria-label="Current game state"
@@ -82,7 +114,11 @@ function GameStatePanel({ gameState }: { gameState: GameState }) {
         />
       </div>
 
-      <SpinPanel gameState={gameState} />
+      <SpinPanel
+        gameState={gameState}
+        onEraRespin={onEraRespin}
+        onTeamRespin={onTeamRespin}
+      />
 
       <div className="mt-6">
         <h2 className="text-xl font-black">Available Categories</h2>
@@ -107,7 +143,22 @@ function GameStatePanel({ gameState }: { gameState: GameState }) {
   );
 }
 
-function SpinPanel({ gameState }: { gameState: GameState }) {
+function SpinPanel({
+  gameState,
+  onEraRespin,
+  onTeamRespin,
+}: {
+  gameState: GameState;
+  onEraRespin: () => Promise<void>;
+  onTeamRespin: () => Promise<void>;
+}) {
+  const teamRespinDisabled =
+    gameState.status !== "selectingCategory" ||
+    !gameState.respins.teamRespinAvailable;
+  const eraRespinDisabled =
+    gameState.status !== "selectingCategory" ||
+    !gameState.respins.eraRespinAvailable;
+
   return (
     <div className="mt-6">
       <h2 className="text-xl font-black">Round Spin</h2>
@@ -140,7 +191,55 @@ function SpinPanel({ gameState }: { gameState: GameState }) {
           value={gameState.currentEra ? gameState.currentEra.label : "Spinning..."}
         />
       </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <RespinButton
+          disabled={teamRespinDisabled}
+          label="Team Respin"
+          testId="team-respin-button"
+          usedRound={gameState.respins.teamRespinUsedRound}
+          onClick={onTeamRespin}
+        />
+        <RespinButton
+          disabled={eraRespinDisabled}
+          label="Era Respin"
+          testId="era-respin-button"
+          usedRound={gameState.respins.eraRespinUsedRound}
+          onClick={onEraRespin}
+        />
+      </div>
     </div>
+  );
+}
+
+function RespinButton({
+  disabled,
+  label,
+  onClick,
+  testId,
+  usedRound,
+}: {
+  disabled: boolean;
+  label: string;
+  onClick: () => Promise<void>;
+  testId: string;
+  usedRound: number | null;
+}) {
+  return (
+    <button
+      data-testid={testId}
+      className="inline-flex min-h-12 w-full items-center justify-between gap-3 border border-[#f2b35e] bg-[#171312] px-4 py-3 text-left text-sm font-black text-white transition-colors hover:bg-[#352b27] focus:outline-none focus:ring-2 focus:ring-[#f2b35e] focus:ring-offset-2 focus:ring-offset-[#171312] disabled:cursor-not-allowed disabled:border-[#4d403b] disabled:bg-[#2c2522] disabled:text-[#95867e]"
+      type="button"
+      disabled={disabled}
+      onClick={() => {
+        void onClick();
+      }}
+    >
+      <span>{label}</span>
+      <span className="text-xs uppercase tracking-[0.14em]">
+        {usedRound === null ? "Available" : `Used R${usedRound}`}
+      </span>
+    </button>
   );
 }
 
