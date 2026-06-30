@@ -19,7 +19,7 @@ export function applyTeamRespin({
   random,
 }: UseTeamRespinInput): GameState {
   if (
-    state.status !== "selectingCategory" ||
+    state.status !== "selectingPlayer" ||
     !state.respins.teamRespinAvailable ||
     !state.currentTeam ||
     !state.currentEra
@@ -56,7 +56,7 @@ export function applyEraRespin({
   random,
 }: UseEraRespinInput): GameState {
   if (
-    state.status !== "selectingCategory" ||
+    state.status !== "selectingPlayer" ||
     !state.respins.eraRespinAvailable ||
     !state.currentTeam ||
     !state.currentEra

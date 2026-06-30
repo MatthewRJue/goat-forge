@@ -1,5 +1,5 @@
 import { getPlayerOptionRating } from "@/lib/game/player-pool";
-import type { GameState, PlayerOption } from "@/lib/game/types";
+import type { AttributeCategory, GameState, PlayerOption } from "@/lib/game/types";
 
 type SelectPlayerInput = {
   state: GameState;
@@ -9,7 +9,6 @@ type SelectPlayerInput = {
 export function selectPlayer({ state, player }: SelectPlayerInput): GameState {
   if (
     state.status !== "selectingPlayer" ||
-    !state.selectedCategory ||
     !state.originalTeam ||
     !state.originalEra ||
     !state.currentTeam ||
@@ -21,14 +20,50 @@ export function selectPlayer({ state, player }: SelectPlayerInput): GameState {
     return state;
   }
 
-  const rating = getPlayerOptionRating(player, state.selectedCategory);
+  return {
+    ...state,
+    status: "selectingCategory",
+    selectedPlayerVersion: player,
+    selectedCategory: null,
+    spinError: null,
+  };
+}
+
+type ApplySelectedCategoryInput = {
+  state: GameState;
+  category: AttributeCategory;
+};
+
+export function applySelectedCategory({
+  state,
+  category,
+}: ApplySelectedCategoryInput): GameState {
+  const completedCategory = state.completedCategories.some(
+    (completed) => completed.category === category,
+  );
+
+  if (
+    state.status !== "selectingCategory" ||
+    !state.selectedPlayerVersion ||
+    !state.originalTeam ||
+    !state.originalEra ||
+    !state.currentTeam ||
+    !state.currentEra ||
+    completedCategory ||
+    !state.availableCategories.includes(category)
+  ) {
+    return state;
+  }
+
+  const player = state.selectedPlayerVersion;
+  const rating = getPlayerOptionRating(player, category);
   const teamRespinUsed =
     state.respins.teamRespinUsedRound === state.currentRound;
   const eraRespinUsed = state.respins.eraRespinUsedRound === state.currentRound;
   const completedCategories = [
     ...state.completedCategories,
     {
-      category: state.selectedCategory,
+      category,
       playerVersionId: player.playerVersionId,
       playerName: player.name,
       playerVersionLabel: player.versionLabel,
@@ -38,7 +73,7 @@ export function selectPlayer({ state, player }: SelectPlayerInput): GameState {
     },
   ];
   const availableCategories = state.availableCategories.filter(
-    (category) => category !== state.selectedCategory,
+    (availableCategory) => availableCategory !== category,
   );
   const usedPlayerVersionIds = [
     ...state.usedPlayerVersionIds,
@@ -54,7 +89,7 @@ export function selectPlayer({ state, player }: SelectPlayerInput): GameState {
       finalEra: state.currentEra,
       teamRespinUsed,
       eraRespinUsed,
-      selectedCategory: state.selectedCategory,
+      selectedCategory: category,
       selectedPlayerVersionId: player.playerVersionId,
       selectedPlayerName: player.name,
       selectedPlayerVersionLabel: player.versionLabel,
@@ -73,6 +108,7 @@ export function selectPlayer({ state, player }: SelectPlayerInput): GameState {
     originalEra: null,
     currentTeam: null,
     currentEra: null,
+    selectedPlayerVersion: null,
     selectedCategory: null,
     availableCategories,
     completedCategories,

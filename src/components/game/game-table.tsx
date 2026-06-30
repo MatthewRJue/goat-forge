@@ -4,7 +4,7 @@ import { useCallback, useEffect, useReducer, useState } from "react";
 
 import { getEras, getPlayerPool, getTeams } from "@/data/game-data";
 import { gameReducer } from "@/lib/game/game-reducer";
-import { MVP_CATEGORIES, createInitialGameState } from "@/lib/game/game-state";
+import { MVP_CATEGORIES, createStartedGameState } from "@/lib/game/game-state";
 import {
   buildEligiblePlayerOptions,
   getPlayerOptionRating,
@@ -64,7 +64,7 @@ export function GameTable() {
   const [gameState, dispatch] = useReducer(
     gameReducer,
     undefined,
-    createInitialGameState,
+    createStartedGameState,
   );
   const [playerPoolState, setPlayerPoolState] = useState<PlayerPoolState>({
     status: "idle",
@@ -78,6 +78,7 @@ export function GameTable() {
   const handleTeamRespin = useCallback(async () => {
     const teams = await getTeams();
 
+    setPlayerPoolState({ status: "loading" });
     dispatch({
       type: "USE_TEAM_RESPIN",
       teams,
@@ -88,6 +89,7 @@ export function GameTable() {
   const handleEraRespin = useCallback(async () => {
     const eras = await getEras();
 
+    setPlayerPoolState({ status: "loading" });
     dispatch({
       type: "USE_ERA_RESPIN",
       eras,
@@ -96,12 +98,11 @@ export function GameTable() {
   }, []);
 
   const handleCategorySelect = useCallback((category: AttributeCategory) => {
-    setPlayerPoolState({ status: "loading" });
-
     dispatch({
       type: "SELECT_CATEGORY",
       category,
     });
+    setPlayerPoolState({ status: "idle" });
   }, []);
 
   const handleEmptyPoolSpinAgain = useCallback(async () => {
@@ -122,7 +123,6 @@ export function GameTable() {
       type: "SELECT_PLAYER",
       player,
     });
-    setPlayerPoolState({ status: "idle" });
   }, []);
 
   const usedPlayerVersionKey = gameState.usedPlayerVersionIds.join("|");
@@ -134,13 +134,12 @@ export function GameTable() {
 
     let cancelled = false;
 
-    setPlayerPoolState({ status: "idle" });
-
     void Promise.all([getTeams(), getEras()]).then(([teams, eras]) => {
       if (cancelled) {
         return;
       }
 
+      setPlayerPoolState({ status: "loading" });
       dispatch({
         type: "SPIN_ROUND",
         teams,
@@ -157,7 +156,6 @@ export function GameTable() {
   useEffect(() => {
     if (
       gameState.status !== "selectingPlayer" ||
-      !gameState.selectedCategory ||
       !gameState.currentTeam ||
       !gameState.currentEra
     ) {
@@ -199,15 +197,12 @@ export function GameTable() {
   }, [
     gameState.currentEra,
     gameState.currentTeam,
-    gameState.selectedCategory,
+    gameState.respins.eraRespinUsedRound,
+    gameState.respins.teamRespinUsedRound,
     gameState.status,
     gameState.usedPlayerVersionIds,
     usedPlayerVersionKey,
   ]);
-
-  useEffect(() => {
-    void startGame();
-  }, [startGame]);
 
   return (
     <main className="min-h-screen bg-[#171312] px-6 py-10 text-white sm:px-10">
@@ -220,8 +215,8 @@ export function GameTable() {
             Round {gameState.currentRound || 1} of {gameState.totalRounds}
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-[#d8cbc1]">
-            The board has dealt your round constraints. Pick the best category
-            for this team and era when the next step opens.
+            The board has dealt your round constraints. Pick a player from the
+            pool, then choose which open skill belongs in your build.
           </p>
         </header>
 
@@ -287,12 +282,11 @@ function GameStatePanel({
         onCategorySelect={onCategorySelect}
       />
 
-      {gameState.status === "selectingPlayer" && gameState.selectedCategory ? (
+      {gameState.status === "selectingPlayer" ? (
         <PlayerPoolPanel
           currentEraLabel={gameState.currentEra?.label ?? "Unknown era"}
           currentTeamName={gameState.currentTeam?.name ?? "Unknown team"}
           playerPoolState={playerPoolState}
-          selectedCategory={gameState.selectedCategory}
           onEmptyPoolSpinAgain={onEmptyPoolSpinAgain}
           onPlayerSelect={onPlayerSelect}
         />
@@ -308,9 +302,27 @@ function CategorySelectionPanel({
   gameState: GameState;
   onCategorySelect: (category: AttributeCategory) => void;
 }) {
+  const selectedPlayer = gameState.selectedPlayerVersion;
+
   return (
     <div className="mt-6">
-      <h2 className="text-xl font-black">Categories</h2>
+      <h2 className="text-xl font-black">Attribute Choice</h2>
+      {selectedPlayer ? (
+        <div
+          data-testid="selected-player-summary"
+          className="mt-4 border border-[#4d403b] bg-[#171312] p-4"
+        >
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#f2b35e]">
+            Selected player
+          </p>
+          <p className="mt-2 text-lg font-black text-white">
+            {selectedPlayer.name}
+          </p>
+          <p className="mt-1 text-sm font-bold text-[#d8cbc1]">
+            {selectedPlayer.versionLabel}
+          </p>
+        </div>
+      ) : null}
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {MVP_CATEGORIES.map((category) => {
           const completedCategory = gameState.completedCategories.some(
@@ -319,15 +331,20 @@ function CategorySelectionPanel({
           const selectedCategory = gameState.selectedCategory === category;
           const availableCategory =
             gameState.status === "selectingCategory" &&
+            selectedPlayer !== null &&
             !completedCategory &&
             gameState.availableCategories.includes(category);
+          const rating =
+            selectedPlayer === null
+              ? null
+              : getPlayerOptionRating(selectedPlayer, category);
           const buttonLabel = categoryLabels[category];
           const statusLabel = completedCategory
             ? "Locked"
             : selectedCategory
               ? "Selected"
               : availableCategory
-                ? "Open slot"
+                ? `Apply ${rating}`
                 : "Unavailable";
 
           return (
@@ -350,6 +367,9 @@ function CategorySelectionPanel({
                 <span className="mt-2 block text-lg font-black">
                   {buttonLabel}
                 </span>
+                {rating !== null && !completedCategory ? (
+                  <span className="mt-3 block text-2xl font-black">{rating}</span>
+                ) : null}
               </button>
             </div>
           );
@@ -365,17 +385,13 @@ function PlayerPoolPanel({
   onEmptyPoolSpinAgain,
   onPlayerSelect,
   playerPoolState,
-  selectedCategory,
 }: {
   currentEraLabel: string;
   currentTeamName: string;
   onEmptyPoolSpinAgain: () => Promise<void>;
   onPlayerSelect: (player: PlayerOption) => void;
   playerPoolState: PlayerPoolState;
-  selectedCategory: AttributeCategory;
 }) {
-  const selectedCategoryLabel = categoryLabels[selectedCategory];
-
   return (
     <div
       data-testid="player-pool-panel"
@@ -386,7 +402,7 @@ function PlayerPoolPanel({
       </p>
       <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-lg font-black text-white">{selectedCategoryLabel}</p>
+          <p className="text-lg font-black text-white">Choose a player</p>
           <p className="mt-1 text-sm font-bold text-[#d8cbc1]">
             {currentTeamName} / {currentEraLabel}
           </p>
@@ -450,7 +466,6 @@ function PlayerPoolPanel({
               key={player.playerVersionId}
               onSelect={onPlayerSelect}
               player={player}
-              selectedCategory={selectedCategory}
             />
           ))}
         </div>
@@ -462,11 +477,9 @@ function PlayerPoolPanel({
 function PlayerCard({
   onSelect,
   player,
-  selectedCategory,
 }: {
   onSelect: (player: PlayerOption) => void;
   player: PlayerOption;
-  selectedCategory: AttributeCategory;
 }) {
   return (
     <button
@@ -477,20 +490,27 @@ function PlayerCard({
         onSelect(player);
       }}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="space-y-4">
         <div>
           <h3 className="text-lg font-black">{player.name}</h3>
           <p className="mt-1 text-sm font-bold text-[#7d6d5d]">
             {player.versionLabel}
           </p>
         </div>
-        <div className="min-w-16 border border-[#171312] bg-white px-3 py-2 text-center">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
-            {categoryLabels[selectedCategory]}
-          </p>
-          <p className="text-2xl font-black">
-            {getPlayerOptionRating(player, selectedCategory)}
-          </p>
+        <div className="grid grid-cols-2 gap-2">
+          {MVP_CATEGORIES.map((category) => (
+            <div
+              key={category}
+              className="border border-[#171312] bg-white px-2 py-2 text-center"
+            >
+              <p className="text-[0.65rem] font-bold uppercase tracking-[0.1em] text-[#7d6d5d]">
+                {categoryLabels[category]}
+              </p>
+              <p className="text-xl font-black">
+                {getPlayerOptionRating(player, category)}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </button>
@@ -507,10 +527,10 @@ function SpinPanel({
   onTeamRespin: () => Promise<void>;
 }) {
   const teamRespinDisabled =
-    gameState.status !== "selectingCategory" ||
+    gameState.status !== "selectingPlayer" ||
     !gameState.respins.teamRespinAvailable;
   const eraRespinDisabled =
-    gameState.status !== "selectingCategory" ||
+    gameState.status !== "selectingPlayer" ||
     !gameState.respins.eraRespinAvailable;
 
   return (
