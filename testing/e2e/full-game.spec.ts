@@ -21,6 +21,10 @@ const deterministicFiveRoundSequence = [
   0.6,
   0.8,
   0.6,
+  0,
+  0,
+  0,
+  0,
 ].join(",");
 
 test("player can complete a five-round game without creating a sixth round", async ({
@@ -95,4 +99,34 @@ test("player can complete a five-round game without creating a sixth round", asy
     /Final Rank\s*(GOAT|Hall of Fame|All-Time Great|All-Star|Starter|Role Player)/,
   );
   await expect(page.getByTestId("play-again-button")).toBeVisible();
+  await expect(page.getByTestId("play-again-button")).toBeEnabled();
+
+  await page.getByTestId("play-again-button").click();
+
+  await expect(page.getByTestId("final-results-status")).toBeHidden();
+  await expect(page.getByRole("heading", { name: "Round 1 of 5" })).toBeVisible();
+  await expect(page.getByText("selectingPlayer")).toBeVisible();
+  await expect(page.getByTestId("category-card")).toHaveCount(5);
+  await expect(page.getByTestId("completed-category")).toHaveCount(0);
+  await expect(page.getByText("No categories completed")).toBeVisible();
+  await expect(page.getByLabel("Build progress")).toContainText(
+    /Final score\s*Not set/,
+  );
+  await expect(page.getByLabel("Build progress")).toContainText(
+    /Final rank\s*Not set/,
+  );
+  await expect(page.getByTestId("team-respin-button")).toBeEnabled();
+  await expect(page.getByTestId("team-respin-button")).toContainText("Available");
+  await expect(page.getByTestId("era-respin-button")).toBeEnabled();
+  await expect(page.getByTestId("era-respin-button")).toContainText("Available");
+  await expect(page.getByTestId("team-display")).not.toContainText("Spinning");
+  await expect(page.getByTestId("era-display")).not.toContainText("Spinning");
+  await expect(page.getByTestId("player-card").first()).toBeVisible();
+
+  await page.getByTestId("player-card").first().click();
+
+  await expect(page.getByText("selectingCategory")).toBeVisible();
+  await expect(page.getByTestId("available-category")).toHaveCount(5);
+  await page.getByRole("button", { name: /Athleticism/ }).click();
+  await expect(page.getByTestId("completed-category")).toHaveCount(1);
 });
