@@ -2,7 +2,7 @@
 
 ## Status
 
-NOT_STARTED
+COMPLETE
 
 Allowed statuses:
 
@@ -81,6 +81,8 @@ Prefer deterministic test fixtures, local Supabase test data, or mocked query cl
 * Verify local Supabase setup can apply schema and seed data from a clean database.
 * Manually verify at least one populated team-era pair returns a non-empty player pool.
 * Manually verify at least one valid team-era pair with no seeded players returns an empty pool.
+
+Verification note: `npx supabase db reset` applies `supabase/migrations/20260630000000_create_mvp_game_data.sql` and seeds `supabase/seed.sql` from a clean local database. A local Supabase API check verified Heat / 2010s returns the seeded LeBron player version and Warriors / 1980s returns an empty pool. `npm run lint`, `npm run test:unit`, `npm run test:e2e`, and `git diff --check` pass.
 
 ## Out of Scope
 

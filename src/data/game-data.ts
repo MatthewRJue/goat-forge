@@ -5,23 +5,21 @@ import {
   seedPlayerVersions,
   seedTeams,
 } from "@/data/seed/game-data";
+import { createSupabaseClient, hasSupabaseEnvironment } from "@/lib/supabase/client";
+import {
+  getSupabaseEras,
+  getSupabasePlayerPoolRecords,
+  getSupabaseTeams,
+  type PlayerPoolRecords,
+} from "@/lib/supabase/queries/game-data";
 import type {
   Era,
-  Player,
-  PlayerAttributes,
   PlayerAttributeRatings,
   PlayerPoolEntry,
-  PlayerVersion,
   Team,
 } from "@/types/game-data";
 
 const PLAYER_POOL_LIMIT = 20;
-
-type PlayerPoolRecords = {
-  players: Player[];
-  playerVersions: PlayerVersion[];
-  playerAttributes: PlayerAttributes[];
-};
 
 type BuildPlayerPoolOptions = {
   limit?: number;
@@ -29,10 +27,18 @@ type BuildPlayerPoolOptions = {
 };
 
 export async function getTeams(): Promise<Team[]> {
+  if (shouldReadFromSupabase()) {
+    return getSupabaseTeams(createSupabaseClient());
+  }
+
   return [...seedTeams];
 }
 
 export async function getEras(): Promise<Era[]> {
+  if (shouldReadFromSupabase()) {
+    return getSupabaseEras(createSupabaseClient());
+  }
+
   return [...seedEras];
 }
 
@@ -41,6 +47,16 @@ export async function getPlayerPool(
   eraId: string,
   options: BuildPlayerPoolOptions = {},
 ): Promise<PlayerPoolEntry[]> {
+  if (shouldReadFromSupabase()) {
+    const records = await getSupabasePlayerPoolRecords(
+      createSupabaseClient(),
+      teamId,
+      eraId,
+    );
+
+    return buildPlayerPool(records, teamId, eraId, options);
+  }
+
   return buildPlayerPool(
     {
       players: seedPlayers,
@@ -50,6 +66,29 @@ export async function getPlayerPool(
     teamId,
     eraId,
     options,
+  );
+}
+
+function shouldReadFromSupabase() {
+  return (
+    process.env.NODE_ENV !== "test" &&
+    !shouldForceSeedData() &&
+    hasSupabaseEnvironment()
+  );
+}
+
+function shouldForceSeedData() {
+  if (process.env.NEXT_PUBLIC_GOAT_DATA_SOURCE === "seed") {
+    return true;
+  }
+
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return Boolean(
+    window.localStorage.getItem("goat-builder-test-random") !== null ||
+      window.localStorage.getItem("goat-builder-test-random-sequence") !== null,
   );
 }
 
