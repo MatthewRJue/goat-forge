@@ -20,6 +20,14 @@ const categoryLabels: Record<AttributeCategory, string> = {
   defense: "Defense",
 };
 
+const categoryShortLabels: Record<AttributeCategory, string> = {
+  athleticism: "ATH",
+  shooting: "SHO",
+  finishing: "FIN",
+  playmaking: "PLY",
+  defense: "DEF",
+};
+
 type PlayerPoolState =
   | {
       status: "idle";
@@ -464,7 +472,7 @@ function PlayerPoolPanel({
       ) : null}
 
       {playerPoolState.status === "ready" && playerPoolState.players.length > 0 ? (
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="mt-4 max-h-[28rem] space-y-3 overflow-y-auto pr-1">
           {playerPoolState.players.map((player) => (
             <PlayerCard
               key={player.playerVersionId}
@@ -489,28 +497,31 @@ function PlayerCard({
     <button
       data-testid="player-card"
       type="button"
-      className="min-h-32 w-full border border-[#d6c7a8] bg-white p-4 text-left text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1]"
+      className="w-full border border-[#d6c7a8] bg-white p-3 text-left text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1] sm:p-4"
       onClick={() => {
         onSelect(player);
       }}
     >
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-lg font-black">{player.name}</h3>
-          <p className="mt-1 text-sm font-bold text-[#7d6d5d]">
+      <div className="flex min-w-0 items-center justify-between gap-3 sm:gap-5">
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-base font-black sm:text-lg">
+            {player.name}
+          </h3>
+          <p className="mt-1 truncate text-xs font-bold text-[#7d6d5d] sm:text-sm">
             {player.versionLabel}
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid shrink-0 grid-cols-5 gap-1 sm:gap-2">
           {MVP_CATEGORIES.map((category) => (
             <div
               key={category}
-              className="border border-[#171312] bg-white px-2 py-2 text-center"
+              className="w-8 border border-[#171312] bg-white px-1 py-2 text-center sm:w-14"
             >
-              <p className="text-[0.65rem] font-bold uppercase tracking-[0.1em] text-[#7d6d5d]">
-                {categoryLabels[category]}
+              <p className="text-[0.55rem] font-bold uppercase leading-none text-[#7d6d5d] sm:text-[0.65rem]">
+                <span className="sr-only">{categoryLabels[category]}</span>
+                <span aria-hidden="true">{categoryShortLabels[category]}</span>
               </p>
-              <p className="text-xl font-black">
+              <p className="mt-1 text-base font-black sm:text-xl">
                 {getPlayerOptionRating(player, category)}
               </p>
             </div>
