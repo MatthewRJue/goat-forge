@@ -9,9 +9,6 @@ test("selecting a player reveals available attribute categories", async ({
   await page.goto("/game");
 
   await expect(page.getByTestId("player-pool-panel")).toBeVisible();
-  await expect(page.getByTestId("player-pool-panel")).toContainText(
-    "Choose a player",
-  );
   await expect(page.getByTestId("player-card").first()).toBeVisible();
   await expect(page.getByTestId("player-card").first()).toContainText(
     "Magic Johnson",
@@ -36,6 +33,20 @@ test("selecting a player reveals available attribute categories", async ({
   );
   await expect(page.getByTestId("player-pool-panel")).toBeHidden();
   await expect(page.getByTestId("available-category")).toHaveCount(5);
+
+  await page.getByTestId("back-to-player-list-button").click();
+
+  await expect(page.getByTestId("selected-player-summary")).toBeHidden();
+  await expect(
+    page.getByRole("heading", { name: "Attribute Choice" }),
+  ).toBeHidden();
+  await expect(page.getByTestId("category-card")).toHaveCount(0);
+  await expect(page.getByTestId("player-pool-panel")).toBeVisible();
+  await expect(page.getByTestId("player-card").first()).toContainText(
+    "Magic Johnson",
+  );
+  await expect(page.getByTestId("team-respin-button")).toBeEnabled();
+  await expect(page.getByTestId("era-respin-button")).toBeEnabled();
 });
 
 test("selecting an attribute completes the selected player category", async ({

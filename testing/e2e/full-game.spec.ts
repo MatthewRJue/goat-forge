@@ -108,12 +108,11 @@ test("player can complete a five-round game without creating a sixth round", asy
   await expect(page.getByTestId("player-pool-panel")).toBeVisible();
   await expect(page.getByTestId("category-card")).toHaveCount(0);
   await expect(page.getByTestId("completed-category")).toHaveCount(0);
-  await expect(page.getByText("No categories completed")).toBeVisible();
-  await expect(page.getByLabel("Build progress")).toContainText(
-    /Final score\s*Not set/,
+  await expect(page.getByLabel("Build progress")).not.toContainText(
+    "Final score",
   );
-  await expect(page.getByLabel("Build progress")).toContainText(
-    /Final rank\s*Not set/,
+  await expect(page.getByLabel("Build progress")).not.toContainText(
+    "Round history",
   );
   await expect(page.getByTestId("team-respin-button")).toBeEnabled();
   await expect(page.getByTestId("team-respin-button")).toContainText("Available");

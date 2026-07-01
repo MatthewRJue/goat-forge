@@ -1,5 +1,9 @@
 import { createStartedGameState } from "@/lib/game/game-state";
-import { applySelectedCategory, selectPlayer } from "@/lib/game/select-player";
+import {
+  applySelectedCategory,
+  deselectPlayer,
+  selectPlayer,
+} from "@/lib/game/select-player";
 import type { RandomFn } from "@/lib/game/random";
 import { applyEraRespin, applyTeamRespin } from "@/lib/game/respins";
 import { createRoundSpin } from "@/lib/game/spin-round";
@@ -37,6 +41,9 @@ export type GameAction =
   | {
       type: "SELECT_PLAYER";
       player: PlayerOption;
+    }
+  | {
+      type: "DESELECT_PLAYER";
     }
   | {
       type: "SPIN_AGAIN_FOR_EMPTY_POOL";
@@ -98,6 +105,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return applySelectedCategory({ state, category: action.category });
     case "SELECT_PLAYER":
       return selectPlayer({ state, player: action.player });
+    case "DESELECT_PLAYER":
+      return deselectPlayer(state);
     case "SPIN_AGAIN_FOR_EMPTY_POOL":
       return spinAgainForEmptyPool(state, action.teams, action.eras, action.random);
     default:

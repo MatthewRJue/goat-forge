@@ -274,6 +274,35 @@ describe("game reducer", () => {
     expect(state.roundHistory).toEqual([]);
   });
 
+  it("returns to player selection after deselecting a selected player", () => {
+    const selectingCategoryState = createSelectingCategoryState();
+
+    const state = gameReducer(selectingCategoryState, {
+      type: "DESELECT_PLAYER",
+    });
+
+    expect(state.status).toBe("selectingPlayer");
+    expect(state.selectedPlayerVersion).toBeNull();
+    expect(state.selectedCategory).toBeNull();
+    expect(state.currentRound).toBe(selectingCategoryState.currentRound);
+    expect(state.currentTeam).toEqual(selectingCategoryState.currentTeam);
+    expect(state.currentEra).toEqual(selectingCategoryState.currentEra);
+    expect(state.availableCategories).toEqual(MVP_CATEGORIES);
+    expect(state.completedCategories).toEqual([]);
+    expect(state.usedPlayerVersionIds).toEqual([]);
+    expect(state.roundHistory).toEqual([]);
+  });
+
+  it("does not deselect a player when no player is selected", () => {
+    const selectingPlayerState = createSelectingPlayerState();
+
+    const state = gameReducer(selectingPlayerState, {
+      type: "DESELECT_PLAYER",
+    });
+
+    expect(state).toEqual(selectingPlayerState);
+  });
+
   it("does not select a player before player selection starts", () => {
     const spinningState = createStartedGameState();
 

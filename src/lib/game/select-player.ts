@@ -31,6 +31,20 @@ export function selectPlayer({ state, player }: SelectPlayerInput): GameState {
   };
 }
 
+export function deselectPlayer(state: GameState): GameState {
+  if (state.status !== "selectingCategory" || !state.selectedPlayerVersion) {
+    return state;
+  }
+
+  return {
+    ...state,
+    status: "selectingPlayer",
+    selectedPlayerVersion: null,
+    selectedCategory: null,
+    spinError: null,
+  };
+}
+
 type ApplySelectedCategoryInput = {
   state: GameState;
   category: AttributeCategory;

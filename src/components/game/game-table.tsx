@@ -134,6 +134,12 @@ export function GameTable() {
     });
   }, []);
 
+  const handlePlayerDeselect = useCallback(() => {
+    dispatch({
+      type: "DESELECT_PLAYER",
+    });
+  }, []);
+
   const usedPlayerVersionKey = gameState.usedPlayerVersionIds.join("|");
 
   useEffect(() => {
@@ -259,6 +265,7 @@ export function GameTable() {
             onCategorySelect={handleCategorySelect}
             onEmptyPoolSpinAgain={handleEmptyPoolSpinAgain}
             onEraRespin={handleEraRespin}
+            onPlayerDeselect={handlePlayerDeselect}
             onPlayerSelect={handlePlayerSelect}
             onTeamRespin={handleTeamRespin}
             playerPoolState={playerPoolState}
@@ -275,6 +282,7 @@ function GameStatePanel({
   onCategorySelect,
   onEmptyPoolSpinAgain,
   onEraRespin,
+  onPlayerDeselect,
   onPlayerSelect,
   onTeamRespin,
   playerPoolState,
@@ -283,6 +291,7 @@ function GameStatePanel({
   onCategorySelect: (category: AttributeCategory) => void;
   onEmptyPoolSpinAgain: () => Promise<void>;
   onEraRespin: () => Promise<void>;
+  onPlayerDeselect: () => void;
   onPlayerSelect: (player: PlayerOption) => void;
   onTeamRespin: () => Promise<void>;
   playerPoolState: PlayerPoolState;
@@ -301,12 +310,11 @@ function GameStatePanel({
       <CategorySelectionPanel
         gameState={gameState}
         onCategorySelect={onCategorySelect}
+        onPlayerDeselect={onPlayerDeselect}
       />
 
       {gameState.status === "selectingPlayer" ? (
         <PlayerPoolPanel
-          currentEraLabel={gameState.currentEra?.label ?? "Unknown era"}
-          currentTeamName={gameState.currentTeam?.name ?? "Unknown team"}
           playerPoolState={playerPoolState}
           onEmptyPoolSpinAgain={onEmptyPoolSpinAgain}
           onPlayerSelect={onPlayerSelect}
@@ -319,9 +327,11 @@ function GameStatePanel({
 function CategorySelectionPanel({
   gameState,
   onCategorySelect,
+  onPlayerDeselect,
 }: {
   gameState: GameState;
   onCategorySelect: (category: AttributeCategory) => void;
+  onPlayerDeselect: () => void;
 }) {
   const selectedPlayer = gameState.selectedPlayerVersion;
 
@@ -331,7 +341,18 @@ function CategorySelectionPanel({
 
   return (
     <div className="mt-6">
-      <h2 className="text-xl font-black">Attribute Choice</h2>
+      <div className="flex items-center gap-3">
+        <button
+          data-testid="back-to-player-list-button"
+          type="button"
+          aria-label="Back to player list"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center border border-[#d8623d] bg-[#fff8ea] text-lg font-black leading-none text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1]"
+          onClick={onPlayerDeselect}
+        >
+          ←
+        </button>
+        <h2 className="text-xl font-black">Attribute Choice</h2>
+      </div>
       <div
         data-testid="selected-player-summary"
         className="mt-4 border border-[#d6c7a8] bg-white p-4"
@@ -339,10 +360,10 @@ function CategorySelectionPanel({
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
           Selected player
         </p>
-        <p className="mt-2 text-lg font-black text-[#171312]">
+        <p className="mt-2 truncate text-lg font-black text-[#171312]">
           {selectedPlayer.name}
         </p>
-        <p className="mt-1 text-sm font-bold text-[#554943]">
+        <p className="mt-1 truncate text-sm font-bold text-[#554943]">
           {selectedPlayer.versionLabel}
         </p>
       </div>
@@ -408,14 +429,10 @@ function CategorySelectionPanel({
 }
 
 function PlayerPoolPanel({
-  currentEraLabel,
-  currentTeamName,
   onEmptyPoolSpinAgain,
   onPlayerSelect,
   playerPoolState,
 }: {
-  currentEraLabel: string;
-  currentTeamName: string;
   onEmptyPoolSpinAgain: () => Promise<void>;
   onPlayerSelect: (player: PlayerOption) => void;
   playerPoolState: PlayerPoolState;
@@ -425,27 +442,10 @@ function PlayerPoolPanel({
       data-testid="player-pool-panel"
       className="mt-6 border border-[#d6c7a8] bg-[#fdfaf1] p-4"
     >
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
-        Player Pool
-      </p>
-      <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-lg font-black text-[#171312]">Choose a player</p>
-          <p className="mt-1 text-sm font-bold text-[#554943]">
-            {currentTeamName} / {currentEraLabel}
-          </p>
-        </div>
-        {playerPoolState.status === "ready" ? (
-          <p className="text-sm font-black text-[#9d3b2f]">
-            {playerPoolState.players.length} available
-          </p>
-        ) : null}
-      </div>
-
       {playerPoolState.status === "loading" ? (
         <div
           data-testid="player-pool-loading"
-          className="mt-4 border border-[#d6c7a8] bg-white p-4 text-sm font-bold text-[#554943]"
+          className="border border-[#d6c7a8] bg-white p-4 text-sm font-bold text-[#554943]"
         >
           Loading player pool
         </div>
@@ -454,7 +454,7 @@ function PlayerPoolPanel({
       {playerPoolState.status === "error" ? (
         <div
           role="alert"
-          className="mt-4 border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
+          className="border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
         >
           <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
             Player pool unavailable
@@ -467,13 +467,10 @@ function PlayerPoolPanel({
         <div
           data-testid="player-pool-empty"
           role="alert"
-          className="mt-4 border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
+          className="border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
         >
           <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
             No eligible players found
-          </p>
-          <p className="mt-2 text-base font-bold">
-            {currentTeamName} / {currentEraLabel}
           </p>
           <button
             type="button"
@@ -488,7 +485,7 @@ function PlayerPoolPanel({
       ) : null}
 
       {playerPoolState.status === "ready" && playerPoolState.players.length > 0 ? (
-        <div className="mt-4 max-h-[28rem] space-y-3 overflow-y-auto pr-1">
+        <div className="max-h-[28rem] space-y-3 overflow-y-auto pr-1">
           {playerPoolState.players.map((player) => (
             <PlayerCard
               key={player.playerVersionId}
@@ -563,15 +560,16 @@ function SpinPanel({
   const eraRespinDisabled =
     gameState.status !== "selectingPlayer" ||
     !gameState.respins.eraRespinAvailable;
+  const spinGridClass = gameState.spinError
+    ? "mt-4 grid gap-3 sm:grid-cols-2"
+    : "grid gap-3 sm:grid-cols-2";
 
   return (
     <div className="mt-6">
-      <h2 className="text-xl font-black">Round Spin</h2>
-
       {gameState.spinError ? (
         <div
           role="alert"
-          className="mt-4 border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
+          className="border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
         >
           <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
             Spin unavailable
@@ -580,38 +578,39 @@ function SpinPanel({
         </div>
       ) : null}
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <SpinCard
-          testId="team-display"
-          label="Team"
-          value={
-            gameState.currentTeam
-              ? `${gameState.currentTeam.name} (${gameState.currentTeam.abbreviation})`
-              : "Spinning..."
-          }
-        />
-        <SpinCard
-          testId="era-display"
-          label="Era"
-          value={gameState.currentEra ? gameState.currentEra.label : "Spinning..."}
-        />
-      </div>
-
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <RespinButton
-          disabled={teamRespinDisabled}
-          label="Team Respin"
-          testId="team-respin-button"
-          usedRound={gameState.respins.teamRespinUsedRound}
-          onClick={onTeamRespin}
-        />
-        <RespinButton
-          disabled={eraRespinDisabled}
-          label="Era Respin"
-          testId="era-respin-button"
-          usedRound={gameState.respins.eraRespinUsedRound}
-          onClick={onEraRespin}
-        />
+      <div className={spinGridClass}>
+        <div className="space-y-2">
+          <RespinButton
+            disabled={teamRespinDisabled}
+            label="Team Respin"
+            testId="team-respin-button"
+            usedRound={gameState.respins.teamRespinUsedRound}
+            onClick={onTeamRespin}
+          />
+          <SpinCard
+            testId="team-display"
+            label="Team"
+            value={
+              gameState.currentTeam
+                ? `${gameState.currentTeam.name} (${gameState.currentTeam.abbreviation})`
+                : "Spinning..."
+            }
+          />
+        </div>
+        <div className="space-y-2">
+          <RespinButton
+            disabled={eraRespinDisabled}
+            label="Era Respin"
+            testId="era-respin-button"
+            usedRound={gameState.respins.eraRespinUsedRound}
+            onClick={onEraRespin}
+          />
+          <SpinCard
+            testId="era-display"
+            label="Era"
+            value={gameState.currentEra ? gameState.currentEra.label : "Spinning..."}
+          />
+        </div>
       </div>
     </div>
   );
@@ -633,7 +632,7 @@ function RespinButton({
   return (
     <button
       data-testid={testId}
-      className="inline-flex min-h-12 w-full items-center justify-between gap-3 border border-[#171312] bg-[#171312] px-4 py-3 text-left text-sm font-black text-white transition-colors hover:bg-[#352b27] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1] disabled:cursor-not-allowed disabled:border-[#d6c7a8] disabled:bg-[#efe5d3] disabled:text-[#8c7b6c]"
+      className="group inline-flex min-h-9 w-full items-center justify-between gap-3 border border-[#d8623d] bg-[#fff8ea] px-3 py-2 text-left text-xs font-black text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1] disabled:cursor-not-allowed disabled:border-[#d6c7a8] disabled:bg-white disabled:text-[#8c7b6c]"
       type="button"
       disabled={disabled}
       onClick={() => {
@@ -641,7 +640,7 @@ function RespinButton({
       }}
     >
       <span>{label}</span>
-      <span className="text-xs uppercase tracking-[0.14em]">
+      <span className="text-[0.65rem] uppercase text-[#9d3b2f] group-disabled:text-[#8c7b6c]">
         {usedRound === null ? "Available" : `Used R${usedRound}`}
       </span>
     </button>
@@ -660,12 +659,12 @@ function SpinCard({
   return (
     <div
       data-testid={testId}
-      className="min-h-28 border border-[#d6c7a8] bg-white p-4 text-[#171312]"
+      aria-label={label}
+      className="flex min-h-14 items-center border border-[#d6c7a8] bg-white px-4 py-3 text-[#171312]"
     >
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
-        {label}
+      <p className="min-w-0 break-words text-lg font-black sm:text-xl">
+        {value}
       </p>
-      <p className="mt-3 break-words text-2xl font-black">{value}</p>
     </div>
   );
 }
@@ -677,83 +676,39 @@ function ProgressPanel({ gameState }: { gameState: GameState }) {
       className="border border-[#171312] bg-[#fdfaf1] p-5"
     >
       <h2 className="text-xl font-black">Build Progress</h2>
-      <dl className="mt-5 space-y-4 text-sm">
-        <ProgressRow
-          label="Completed categories"
-          value={String(gameState.completedCategories.length)}
-        />
-        <ProgressRow
-          label="Used player versions"
-          value={String(gameState.usedPlayerVersionIds.length)}
-        />
-        <ProgressRow
-          label="Round history"
-          value={String(gameState.roundHistory.length)}
-        />
-        <ProgressRow
-          label="Final score"
-          value={gameState.finalScore === null ? "Not set" : String(gameState.finalScore)}
-        />
-        <ProgressRow
-          label="Final rank"
-          value={gameState.finalRank === null ? "Not set" : gameState.finalRank}
-        />
-      </dl>
-
-      <div className="mt-6">
-        <h3 className="text-sm font-black uppercase tracking-[0.14em] text-[#9d3b2f]">
-          Active Build
-        </h3>
-        {gameState.completedCategories.length === 0 ? (
-          <p className="mt-3 border border-[#d6c7a8] bg-white p-4 text-sm font-bold text-[#554943]">
-            No categories completed
-          </p>
-        ) : (
-          <div className="mt-3 space-y-3">
-            {gameState.completedCategories.map((completedCategory) => (
-              <div
-                data-testid="completed-category"
-                key={completedCategory.category}
-                className="border border-[#d6c7a8] bg-white p-4"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
-                      {categoryLabels[completedCategory.category]}
-                    </p>
-                    <p className="mt-2 text-base font-black text-[#171312]">
-                      {completedCategory.playerName}
-                    </p>
-                    <p className="mt-1 text-xs font-bold text-[#554943]">
-                      {completedCategory.playerVersionLabel}
-                    </p>
-                    <p className="mt-1 text-xs font-bold text-[#7d6d5d]">
-                      {completedCategory.teamName} / {completedCategory.eraLabel}
-                    </p>
-                  </div>
-                  <div className="min-w-16 border border-[#d6c7a8] bg-[#fdfaf1] px-3 py-2 text-center text-[#171312]">
-                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
-                      Rating
-                    </p>
-                    <p className="text-2xl font-black">
-                      {completedCategory.rating}
-                    </p>
-                  </div>
+      {gameState.completedCategories.length > 0 ? (
+        <div className="mt-5 space-y-3">
+          {gameState.completedCategories.map((completedCategory) => (
+            <div
+              data-testid="completed-category"
+              key={completedCategory.category}
+              className="border border-[#d6c7a8] bg-white p-4"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
+                    {categoryLabels[completedCategory.category]}
+                  </p>
+                  <p className="mt-2 text-base font-black text-[#171312]">
+                    {completedCategory.playerName}
+                  </p>
+                  <p className="mt-1 text-xs font-bold text-[#7d6d5d]">
+                    {completedCategory.teamName} / {completedCategory.eraLabel}
+                  </p>
+                </div>
+                <div className="min-w-16 border border-[#d6c7a8] bg-[#fdfaf1] px-3 py-2 text-center text-[#171312]">
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
+                    Rating
+                  </p>
+                  <p className="text-2xl font-black">
+                    {completedCategory.rating}
+                  </p>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </aside>
-  );
-}
-
-function ProgressRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-4 border-b border-[#d6c7a8] pb-3">
-      <dt className="text-[#554943]">{label}</dt>
-      <dd className="text-right font-black text-[#171312]">{value}</dd>
-    </div>
   );
 }
