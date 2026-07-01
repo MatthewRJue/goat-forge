@@ -233,17 +233,24 @@ export function GameTable() {
   return (
     <main className="min-h-screen bg-[#f8f3e7] px-6 py-10 text-[#171312] sm:px-10">
       <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-5xl flex-col justify-center gap-8">
-        <header className="max-w-3xl">
-          <p className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-[#9d3b2f]">
-            Active game
-          </p>
-          <h1 className="text-4xl font-black leading-tight sm:text-5xl">
-            Round {gameState.currentRound || 1} of {gameState.totalRounds}
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-[#554943]">
-            The board has dealt your round constraints. Pick a player from the
-            pool, then choose which open skill belongs in your build.
-          </p>
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-[#9d3b2f]">
+              Active game
+            </p>
+            <h1 className="text-4xl font-black leading-tight sm:text-5xl">
+              Round {gameState.currentRound || 1} of {gameState.totalRounds}
+            </h1>
+          </div>
+          <button
+            className="inline-flex min-h-12 w-full items-center justify-center bg-[#171312] px-5 text-base font-bold text-white transition-colors hover:bg-[#352b27] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#f8f3e7] sm:w-auto"
+            type="button"
+            onClick={() => {
+              void startGame();
+            }}
+          >
+            New Game
+          </button>
         </header>
 
         <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">
@@ -256,7 +263,7 @@ export function GameTable() {
             onTeamRespin={handleTeamRespin}
             playerPoolState={playerPoolState}
           />
-          <ProgressPanel gameState={gameState} startGame={startGame} />
+          <ProgressPanel gameState={gameState} />
         </div>
       </section>
     </main>
@@ -339,7 +346,7 @@ function CategorySelectionPanel({
           {selectedPlayer.versionLabel}
         </p>
       </div>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-4 space-y-3">
         {MVP_CATEGORIES.map((category) => {
           const completedCategory = gameState.completedCategories.some(
             (completed) => completed.category === category,
@@ -356,7 +363,7 @@ function CategorySelectionPanel({
             : selectedCategory
               ? "Selected"
               : availableCategory
-                ? `Apply ${rating}`
+                ? "Apply to build"
                 : "Unavailable";
 
           return (
@@ -367,21 +374,30 @@ function CategorySelectionPanel({
                 }
                 type="button"
                 disabled={!availableCategory}
-                className="min-h-24 w-full border border-[#d6c7a8] bg-white p-4 text-left text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1] disabled:cursor-not-allowed disabled:bg-[#efe5d3] disabled:text-[#8c7b6c]"
+                className="w-full border border-[#d6c7a8] bg-white p-3 text-left text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1] disabled:cursor-not-allowed disabled:bg-[#efe5d3] disabled:text-[#8c7b6c] sm:p-4"
                 aria-pressed={selectedCategory}
                 onClick={() => {
                   onCategorySelect(category);
                 }}
               >
-                <span className="block text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
-                  {statusLabel}
+                <span className="flex min-w-0 items-center justify-between gap-3 sm:gap-5">
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-base font-black sm:text-lg">
+                      {buttonLabel}
+                    </span>
+                    <span className="mt-1 block truncate text-xs font-bold uppercase text-[#7d6d5d]">
+                      {statusLabel}
+                    </span>
+                  </span>
+                  <span className="shrink-0 border border-[#171312] bg-white px-3 py-2 text-center text-[#171312]">
+                    <span className="block text-[0.6rem] font-bold uppercase leading-none text-[#7d6d5d] sm:text-[0.65rem]">
+                      Rating
+                    </span>
+                    <span className="mt-1 block text-xl font-black sm:text-2xl">
+                      {completedCategory ? "--" : rating}
+                    </span>
+                  </span>
                 </span>
-                <span className="mt-2 block text-lg font-black">
-                  {buttonLabel}
-                </span>
-                {!completedCategory ? (
-                  <span className="mt-3 block text-2xl font-black">{rating}</span>
-                ) : null}
               </button>
             </div>
           );
@@ -654,13 +670,7 @@ function SpinCard({
   );
 }
 
-function ProgressPanel({
-  gameState,
-  startGame,
-}: {
-  gameState: GameState;
-  startGame: () => Promise<void>;
-}) {
+function ProgressPanel({ gameState }: { gameState: GameState }) {
   return (
     <aside
       aria-label="Build progress"
@@ -735,16 +745,6 @@ function ProgressPanel({
           </div>
         )}
       </div>
-
-      <button
-        className="mt-6 inline-flex min-h-12 w-full items-center justify-center bg-[#171312] px-5 text-base font-bold text-white transition-colors hover:bg-[#352b27] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1]"
-        type="button"
-        onClick={() => {
-          void startGame();
-        }}
-      >
-        New Game
-      </button>
     </aside>
   );
 }
