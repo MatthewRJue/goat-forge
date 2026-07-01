@@ -223,16 +223,16 @@ export function GameTable() {
   }
 
   return (
-    <main className="min-h-screen bg-[#171312] px-6 py-10 text-white sm:px-10">
+    <main className="min-h-screen bg-[#f8f3e7] px-6 py-10 text-[#171312] sm:px-10">
       <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-5xl flex-col justify-center gap-8">
         <header className="max-w-3xl">
-          <p className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-[#f2b35e]">
+          <p className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-[#9d3b2f]">
             Active game
           </p>
           <h1 className="text-4xl font-black leading-tight sm:text-5xl">
             Round {gameState.currentRound || 1} of {gameState.totalRounds}
           </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-[#d8cbc1]">
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-[#554943]">
             The board has dealt your round constraints. Pick a player from the
             pool, then choose which open skill belongs in your build.
           </p>
@@ -275,7 +275,7 @@ function GameStatePanel({
   return (
     <section
       aria-label="Current game state"
-      className="border-2 border-[#f2b35e] bg-[#211b19] p-5 shadow-[8px_8px_0_#d8623d]"
+      className="border-2 border-[#171312] bg-[#fdfaf1] p-5 shadow-[8px_8px_0_#d8623d]"
     >
       <div className="grid gap-3 sm:grid-cols-3">
         <StateMetric label="Status" value={gameState.status} />
@@ -328,15 +328,15 @@ function CategorySelectionPanel({
       {selectedPlayer ? (
         <div
           data-testid="selected-player-summary"
-          className="mt-4 border border-[#4d403b] bg-[#171312] p-4"
+          className="mt-4 border border-[#d6c7a8] bg-white p-4"
         >
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#f2b35e]">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
             Selected player
           </p>
-          <p className="mt-2 text-lg font-black text-white">
+          <p className="mt-2 text-lg font-black text-[#171312]">
             {selectedPlayer.name}
           </p>
-          <p className="mt-1 text-sm font-bold text-[#d8cbc1]">
+          <p className="mt-1 text-sm font-bold text-[#554943]">
             {selectedPlayer.versionLabel}
           </p>
         </div>
@@ -373,7 +373,7 @@ function CategorySelectionPanel({
                 }
                 type="button"
                 disabled={!availableCategory}
-                className="min-h-24 w-full border border-[#4d403b] bg-[#fff8ea] p-4 text-left text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#f2b35e] focus:ring-offset-2 focus:ring-offset-[#211b19] disabled:cursor-not-allowed disabled:bg-[#2c2522] disabled:text-[#95867e]"
+                className="min-h-24 w-full border border-[#d6c7a8] bg-white p-4 text-left text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1] disabled:cursor-not-allowed disabled:bg-[#efe5d3] disabled:text-[#8c7b6c]"
                 aria-pressed={selectedCategory}
                 onClick={() => {
                   onCategorySelect(category);
@@ -413,20 +413,20 @@ function PlayerPoolPanel({
   return (
     <div
       data-testid="player-pool-panel"
-      className="mt-6 border border-[#4d403b] bg-[#171312] p-4"
+      className="mt-6 border border-[#d6c7a8] bg-[#fdfaf1] p-4"
     >
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#f2b35e]">
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
         Player Pool
       </p>
       <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-lg font-black text-white">Choose a player</p>
-          <p className="mt-1 text-sm font-bold text-[#d8cbc1]">
+          <p className="text-lg font-black text-[#171312]">Choose a player</p>
+          <p className="mt-1 text-sm font-bold text-[#554943]">
             {currentTeamName} / {currentEraLabel}
           </p>
         </div>
         {playerPoolState.status === "ready" ? (
-          <p className="text-sm font-black text-[#f2b35e]">
+          <p className="text-sm font-black text-[#9d3b2f]">
             {playerPoolState.players.length} available
           </p>
         ) : null}
@@ -435,7 +435,7 @@ function PlayerPoolPanel({
       {playerPoolState.status === "loading" ? (
         <div
           data-testid="player-pool-loading"
-          className="mt-4 border border-[#4d403b] bg-[#211b19] p-4 text-sm font-bold text-[#d8cbc1]"
+          className="mt-4 border border-[#d6c7a8] bg-white p-4 text-sm font-bold text-[#554943]"
         >
           Loading player pool
         </div>
@@ -467,7 +467,7 @@ function PlayerPoolPanel({
           </p>
           <button
             type="button"
-            className="mt-4 inline-flex min-h-11 items-center justify-center border border-[#171312] bg-[#171312] px-4 text-sm font-black text-white transition-colors hover:bg-[#352b27] focus:outline-none focus:ring-2 focus:ring-[#171312] focus:ring-offset-2 focus:ring-offset-[#fff8ea]"
+            className="mt-4 inline-flex min-h-11 items-center justify-center border border-[#171312] bg-[#171312] px-4 text-sm font-black text-white transition-colors hover:bg-[#352b27] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fff8ea]"
             onClick={() => {
               void onEmptyPoolSpinAgain();
             }}
@@ -503,7 +503,7 @@ function PlayerCard({
     <button
       data-testid="player-card"
       type="button"
-      className="min-h-32 w-full border border-[#4d403b] bg-[#fff8ea] p-4 text-left text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#f2b35e] focus:ring-offset-2 focus:ring-offset-[#171312]"
+      className="min-h-32 w-full border border-[#d6c7a8] bg-white p-4 text-left text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1]"
       onClick={() => {
         onSelect(player);
       }}
@@ -620,7 +620,7 @@ function RespinButton({
   return (
     <button
       data-testid={testId}
-      className="inline-flex min-h-12 w-full items-center justify-between gap-3 border border-[#f2b35e] bg-[#171312] px-4 py-3 text-left text-sm font-black text-white transition-colors hover:bg-[#352b27] focus:outline-none focus:ring-2 focus:ring-[#f2b35e] focus:ring-offset-2 focus:ring-offset-[#171312] disabled:cursor-not-allowed disabled:border-[#4d403b] disabled:bg-[#2c2522] disabled:text-[#95867e]"
+      className="inline-flex min-h-12 w-full items-center justify-between gap-3 border border-[#171312] bg-[#171312] px-4 py-3 text-left text-sm font-black text-white transition-colors hover:bg-[#352b27] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1] disabled:cursor-not-allowed disabled:border-[#d6c7a8] disabled:bg-[#efe5d3] disabled:text-[#8c7b6c]"
       type="button"
       disabled={disabled}
       onClick={() => {
@@ -647,7 +647,7 @@ function SpinCard({
   return (
     <div
       data-testid={testId}
-      className="min-h-28 border border-[#4d403b] bg-[#fff8ea] p-4 text-[#171312]"
+      className="min-h-28 border border-[#d6c7a8] bg-white p-4 text-[#171312]"
     >
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
         {label}
@@ -667,7 +667,7 @@ function ProgressPanel({
   return (
     <aside
       aria-label="Build progress"
-      className="border border-[#4d403b] bg-[#211b19] p-5"
+      className="border border-[#171312] bg-[#fdfaf1] p-5"
     >
       <h2 className="text-xl font-black">Build Progress</h2>
       <dl className="mt-5 space-y-4 text-sm">
@@ -694,11 +694,11 @@ function ProgressPanel({
       </dl>
 
       <div className="mt-6">
-        <h3 className="text-sm font-black uppercase tracking-[0.14em] text-[#f2b35e]">
+        <h3 className="text-sm font-black uppercase tracking-[0.14em] text-[#9d3b2f]">
           Active Build
         </h3>
         {gameState.completedCategories.length === 0 ? (
-          <p className="mt-3 border border-[#4d403b] bg-[#171312] p-4 text-sm font-bold text-[#d8cbc1]">
+          <p className="mt-3 border border-[#d6c7a8] bg-white p-4 text-sm font-bold text-[#554943]">
             No categories completed
           </p>
         ) : (
@@ -707,24 +707,24 @@ function ProgressPanel({
               <div
                 data-testid="completed-category"
                 key={completedCategory.category}
-                className="border border-[#4d403b] bg-[#171312] p-4"
+                className="border border-[#d6c7a8] bg-white p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#f2b35e]">
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
                       {categoryLabels[completedCategory.category]}
                     </p>
-                    <p className="mt-2 text-base font-black text-white">
+                    <p className="mt-2 text-base font-black text-[#171312]">
                       {completedCategory.playerName}
                     </p>
-                    <p className="mt-1 text-xs font-bold text-[#d8cbc1]">
+                    <p className="mt-1 text-xs font-bold text-[#554943]">
                       {completedCategory.playerVersionLabel}
                     </p>
-                    <p className="mt-1 text-xs font-bold text-[#95867e]">
+                    <p className="mt-1 text-xs font-bold text-[#7d6d5d]">
                       {completedCategory.teamName} / {completedCategory.eraLabel}
                     </p>
                   </div>
-                  <div className="min-w-16 border border-[#f2b35e] bg-[#fff8ea] px-3 py-2 text-center text-[#171312]">
+                  <div className="min-w-16 border border-[#d6c7a8] bg-[#fdfaf1] px-3 py-2 text-center text-[#171312]">
                     <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
                       Rating
                     </p>
@@ -740,7 +740,7 @@ function ProgressPanel({
       </div>
 
       <button
-        className="mt-6 inline-flex min-h-12 w-full items-center justify-center bg-white px-5 text-base font-bold text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#f2b35e] focus:ring-offset-2 focus:ring-offset-[#171312]"
+        className="mt-6 inline-flex min-h-12 w-full items-center justify-center bg-[#171312] px-5 text-base font-bold text-white transition-colors hover:bg-[#352b27] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1]"
         type="button"
         onClick={() => {
           void startGame();
@@ -754,20 +754,20 @@ function ProgressPanel({
 
 function StateMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border border-[#4d403b] bg-[#171312] p-4">
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#f2b35e]">
+    <div className="border border-[#d6c7a8] bg-white p-4">
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
         {label}
       </p>
-      <p className="mt-2 break-words text-xl font-black">{value}</p>
+      <p className="mt-2 break-words text-xl font-black text-[#171312]">{value}</p>
     </div>
   );
 }
 
 function ProgressRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-[#4d403b] pb-3">
-      <dt className="text-[#d8cbc1]">{label}</dt>
-      <dd className="text-right font-black text-white">{value}</dd>
+    <div className="flex items-center justify-between gap-4 border-b border-[#d6c7a8] pb-3">
+      <dt className="text-[#554943]">{label}</dt>
+      <dd className="text-right font-black text-[#171312]">{value}</dd>
     </div>
   );
 }
