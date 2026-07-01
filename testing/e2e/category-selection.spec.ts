@@ -8,7 +8,6 @@ test("selecting a player reveals available attribute categories", async ({
   });
   await page.goto("/game");
 
-  await expect(page.getByText("selectingPlayer")).toBeVisible();
   await expect(page.getByTestId("player-pool-panel")).toBeVisible();
   await expect(page.getByTestId("player-pool-panel")).toContainText(
     "Choose a player",
@@ -25,7 +24,6 @@ test("selecting a player reveals available attribute categories", async ({
 
   await page.getByTestId("player-card").first().click();
 
-  await expect(page.getByText("selectingCategory")).toBeVisible();
   await expect(page.getByTestId("selected-player-summary")).toContainText(
     "Magic Johnson",
   );
@@ -41,7 +39,7 @@ test("selecting an attribute completes the selected player category", async ({
   });
   await page.goto("/game");
 
-  await expect(page.getByText("selectingPlayer")).toBeVisible();
+  await expect(page.getByTestId("player-pool-panel")).toBeVisible();
 
   await page.getByTestId("player-card").first().click();
   await page.getByRole("button", { name: /Shooting/ }).click();
@@ -49,7 +47,6 @@ test("selecting an attribute completes the selected player category", async ({
   await expect(
     page.getByRole("heading", { name: "Round 2 of 5" }),
   ).toBeVisible();
-  await expect(page.getByText("selectingPlayer")).toBeVisible();
   await expect(page.getByTestId("player-pool-panel")).toBeVisible();
   await expect(page.getByTestId("completed-category")).toHaveCount(1);
   await expect(page.getByTestId("completed-category")).toContainText("Shooting");
@@ -67,7 +64,7 @@ test("player-first selection still works after respins", async ({ page }) => {
   });
   await page.goto("/game");
 
-  await expect(page.getByText("selectingPlayer")).toBeVisible();
+  await expect(page.getByTestId("player-pool-panel")).toBeVisible();
 
   await page.getByTestId("team-respin-button").click();
   await page.getByTestId("era-respin-button").click();
@@ -77,7 +74,7 @@ test("player-first selection still works after respins", async ({ page }) => {
 
   await page.getByTestId("player-card").first().click();
 
-  await expect(page.getByText("selectingCategory")).toBeVisible();
+  await expect(page.getByTestId("selected-player-summary")).toBeVisible();
   await expect(page.getByTestId("available-category")).toHaveCount(5);
   await expect(page.getByTestId("team-respin-button")).toBeDisabled();
   await expect(page.getByTestId("era-respin-button")).toBeDisabled();

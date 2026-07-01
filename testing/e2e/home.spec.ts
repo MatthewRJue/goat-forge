@@ -16,7 +16,7 @@ test("home page opens the game route", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Round 1 of 5" }),
   ).toBeVisible();
-  await expect(page.getByText("selectingPlayer")).toBeVisible();
+  await expect(page.getByTestId("player-pool-panel")).toBeVisible();
   await expect(page.getByTestId("team-display")).toBeVisible();
   await expect(page.getByTestId("team-display")).not.toContainText("Spinning...");
   await expect(page.getByTestId("era-display")).toBeVisible();

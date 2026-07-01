@@ -277,18 +277,6 @@ function GameStatePanel({
       aria-label="Current game state"
       className="border-2 border-[#171312] bg-[#fdfaf1] p-5 shadow-[8px_8px_0_#d8623d]"
     >
-      <div className="grid gap-3 sm:grid-cols-3">
-        <StateMetric label="Status" value={gameState.status} />
-        <StateMetric
-          label="Team respin"
-          value={gameState.respins.teamRespinAvailable ? "Available" : "Used"}
-        />
-        <StateMetric
-          label="Era respin"
-          value={gameState.respins.eraRespinAvailable ? "Available" : "Used"}
-        />
-      </div>
-
       <SpinPanel
         gameState={gameState}
         onEraRespin={onEraRespin}
@@ -749,17 +737,6 @@ function ProgressPanel({
         New Game
       </button>
     </aside>
-  );
-}
-
-function StateMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="border border-[#d6c7a8] bg-white p-4">
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
-        {label}
-      </p>
-      <p className="mt-2 break-words text-xl font-black text-[#171312]">{value}</p>
-    </div>
   );
 }
 
