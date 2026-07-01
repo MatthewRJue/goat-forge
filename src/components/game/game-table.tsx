@@ -310,25 +310,27 @@ function CategorySelectionPanel({
 }) {
   const selectedPlayer = gameState.selectedPlayerVersion;
 
+  if (selectedPlayer === null) {
+    return null;
+  }
+
   return (
     <div className="mt-6">
       <h2 className="text-xl font-black">Attribute Choice</h2>
-      {selectedPlayer ? (
-        <div
-          data-testid="selected-player-summary"
-          className="mt-4 border border-[#d6c7a8] bg-white p-4"
-        >
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
-            Selected player
-          </p>
-          <p className="mt-2 text-lg font-black text-[#171312]">
-            {selectedPlayer.name}
-          </p>
-          <p className="mt-1 text-sm font-bold text-[#554943]">
-            {selectedPlayer.versionLabel}
-          </p>
-        </div>
-      ) : null}
+      <div
+        data-testid="selected-player-summary"
+        className="mt-4 border border-[#d6c7a8] bg-white p-4"
+      >
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
+          Selected player
+        </p>
+        <p className="mt-2 text-lg font-black text-[#171312]">
+          {selectedPlayer.name}
+        </p>
+        <p className="mt-1 text-sm font-bold text-[#554943]">
+          {selectedPlayer.versionLabel}
+        </p>
+      </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {MVP_CATEGORIES.map((category) => {
           const completedCategory = gameState.completedCategories.some(
@@ -337,13 +339,9 @@ function CategorySelectionPanel({
           const selectedCategory = gameState.selectedCategory === category;
           const availableCategory =
             gameState.status === "selectingCategory" &&
-            selectedPlayer !== null &&
             !completedCategory &&
             gameState.availableCategories.includes(category);
-          const rating =
-            selectedPlayer === null
-              ? null
-              : getPlayerOptionRating(selectedPlayer, category);
+          const rating = getPlayerOptionRating(selectedPlayer, category);
           const buttonLabel = categoryLabels[category];
           const statusLabel = completedCategory
             ? "Locked"
@@ -373,7 +371,7 @@ function CategorySelectionPanel({
                 <span className="mt-2 block text-lg font-black">
                   {buttonLabel}
                 </span>
-                {rating !== null && !completedCategory ? (
+                {!completedCategory ? (
                   <span className="mt-3 block text-2xl font-black">{rating}</span>
                 ) : null}
               </button>

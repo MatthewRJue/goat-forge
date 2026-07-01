@@ -20,10 +20,17 @@ test("selecting a player reveals available attribute categories", async ({
     "Shooting",
   );
   await expect(page.getByTestId("player-card").first()).toContainText("86");
+  await expect(
+    page.getByRole("heading", { name: "Attribute Choice" }),
+  ).toBeHidden();
+  await expect(page.getByTestId("category-card")).toHaveCount(0);
   await expect(page.getByTestId("available-category")).toHaveCount(0);
 
   await page.getByTestId("player-card").first().click();
 
+  await expect(
+    page.getByRole("heading", { name: "Attribute Choice" }),
+  ).toBeVisible();
   await expect(page.getByTestId("selected-player-summary")).toContainText(
     "Magic Johnson",
   );
@@ -54,8 +61,9 @@ test("selecting an attribute completes the selected player category", async ({
     "Magic Johnson",
   );
   await expect(page.getByTestId("completed-category")).toContainText("86");
+  await expect(page.getByTestId("category-card")).toHaveCount(0);
   await expect(page.getByTestId("available-category")).toHaveCount(0);
-  await expect(page.getByTestId("locked-category")).toHaveCount(5);
+  await expect(page.getByTestId("locked-category")).toHaveCount(0);
 });
 
 test("player-first selection still works after respins", async ({ page }) => {
@@ -70,6 +78,7 @@ test("player-first selection still works after respins", async ({ page }) => {
   await page.getByTestId("era-respin-button").click();
 
   await expect(page.getByTestId("player-card")).toHaveCount(2);
+  await expect(page.getByTestId("category-card")).toHaveCount(0);
   await expect(page.getByTestId("available-category")).toHaveCount(0);
 
   await page.getByTestId("player-card").first().click();
