@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GOAT Forge
 
-## Getting Started
+GOAT Forge is a Next.js MVP for GOAT Builder, a five-round basketball roster-building game.
 
-First, run the development server:
+Project planning and implementation guidance lives in `agents/`. Start with:
+
+```bash
+agents/delivery/mvp.md
+agents/product/overview.md
+agents/architecture/project-structure.md
+```
+
+## Development
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Supabase Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The MVP game-data tables are defined in `supabase/migrations/`, and app seed records are in `supabase/seed.sql`.
 
-## Learn More
+Required environment variables:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+When these variables are present outside unit tests, the game-data wrappers read from Supabase. When they are missing, the wrappers use the deterministic local seed data in `src/data/seed` as a development fallback.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+To force local seed data for deterministic development or test runs:
 
-## Deploy on Vercel
+```bash
+NEXT_PUBLIC_GOAT_DATA_SOURCE=seed
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+With the Supabase CLI installed, apply the local schema and seed from a clean local database:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+supabase start
+supabase db reset
+```
+
+The reset command applies migrations and then runs `supabase/seed.sql`.
+
+## Verification
+
+Run focused checks before handing off story work:
+
+```bash
+npm run lint
+npm run test:unit
+npm run test:e2e
+git diff --check
+```

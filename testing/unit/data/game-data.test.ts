@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { buildPlayerPool, getEras, getPlayerPool, getTeams } from "@/data/game-data";
 import {
   seedEras,
+  seedGameDataIds,
   seedPlayerAttributes,
   seedPlayers,
   seedPlayerVersions,
@@ -63,15 +64,25 @@ describe("MVP game data", () => {
   });
 
   it("returns a populated player pool for a seeded team-era pair", async () => {
-    const pool = await getPlayerPool("team-mia", "era-2010s");
+    const pool = await getPlayerPool(
+      seedGameDataIds.teams.heat,
+      seedGameDataIds.eras.twentyTens,
+    );
 
     expect(pool).toHaveLength(1);
-    expect(pool[0].version.id).toBe("version-2010s-mia-lebron");
+    expect(pool[0].version.id).toBe(
+      seedGameDataIds.playerVersions.heatLebron2010s,
+    );
     expect(pool[0].attributes.defense).toBe(94);
   });
 
   it("returns an empty player pool when no matching versions exist", async () => {
-    await expect(getPlayerPool("team-gsw", "era-1980s")).resolves.toEqual([]);
+    await expect(
+      getPlayerPool(
+        seedGameDataIds.teams.warriors,
+        seedGameDataIds.eras.nineteenEighties,
+      ),
+    ).resolves.toEqual([]);
   });
 
   it("sorts eligible player versions by total rating and caps the pool at 20", () => {
