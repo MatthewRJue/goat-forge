@@ -276,6 +276,8 @@ Era respin becomes unavailable for the remainder of the game.
 
 A player may use both respins during the same round.
 
+Respins remain available after a player card is selected as long as the player has not selected an attribute category yet. Using a respin at that point clears the selected player because the eligible player pool may have changed.
+
 Example:
 
 Original:

@@ -10,7 +10,7 @@ type SelectPlayerInput = {
 
 export function selectPlayer({ state, player }: SelectPlayerInput): GameState {
   if (
-    state.status !== "selectingPlayer" ||
+    (state.status !== "selectingPlayer" && state.status !== "selectingCategory") ||
     !state.originalTeam ||
     !state.originalEra ||
     !state.currentTeam ||
@@ -26,6 +26,20 @@ export function selectPlayer({ state, player }: SelectPlayerInput): GameState {
     ...state,
     status: "selectingCategory",
     selectedPlayerVersion: player,
+    selectedCategory: null,
+    spinError: null,
+  };
+}
+
+export function deselectPlayer(state: GameState): GameState {
+  if (state.status !== "selectingCategory" || !state.selectedPlayerVersion) {
+    return state;
+  }
+
+  return {
+    ...state,
+    status: "selectingPlayer",
+    selectedPlayerVersion: null,
     selectedCategory: null,
     spinError: null,
   };

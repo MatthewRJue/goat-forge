@@ -20,6 +20,14 @@ const categoryLabels: Record<AttributeCategory, string> = {
   defense: "Defense",
 };
 
+const categoryShortLabels: Record<AttributeCategory, string> = {
+  athleticism: "ATH",
+  shooting: "SHO",
+  finishing: "FIN",
+  playmaking: "PLY",
+  defense: "DEF",
+};
+
 type PlayerPoolState =
   | {
       status: "idle";
@@ -223,32 +231,41 @@ export function GameTable() {
   }
 
   return (
-    <main className="min-h-screen bg-[#171312] px-6 py-10 text-white sm:px-10">
+    <main className="min-h-screen bg-[#f8f3e7] px-6 py-10 text-[#171312] sm:px-10">
       <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-5xl flex-col justify-center gap-8">
-        <header className="max-w-3xl">
-          <p className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-[#f2b35e]">
-            Active game
-          </p>
-          <h1 className="text-4xl font-black leading-tight sm:text-5xl">
-            Round {gameState.currentRound || 1} of {gameState.totalRounds}
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-[#d8cbc1]">
-            The board has dealt your round constraints. Pick a player from the
-            pool, then choose which open skill belongs in your build.
-          </p>
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-[#9d3b2f]">
+              Active game
+            </p>
+            <h1 className="text-4xl font-black leading-tight sm:text-5xl">
+              Round {gameState.currentRound || 1} of {gameState.totalRounds}
+            </h1>
+          </div>
+          <button
+            className="inline-flex min-h-12 w-full items-center justify-center bg-[#171312] px-5 text-base font-bold text-white transition-colors hover:bg-[#352b27] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#f8f3e7] sm:w-auto"
+            type="button"
+            onClick={() => {
+              void startGame();
+            }}
+          >
+            New Game
+          </button>
         </header>
 
         <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">
           <GameStatePanel
             gameState={gameState}
-            onCategorySelect={handleCategorySelect}
             onEmptyPoolSpinAgain={handleEmptyPoolSpinAgain}
             onEraRespin={handleEraRespin}
             onPlayerSelect={handlePlayerSelect}
             onTeamRespin={handleTeamRespin}
             playerPoolState={playerPoolState}
           />
-          <ProgressPanel gameState={gameState} startGame={startGame} />
+          <ProgressPanel
+            gameState={gameState}
+            onCategorySelect={handleCategorySelect}
+          />
         </div>
       </section>
     </main>
@@ -257,7 +274,6 @@ export function GameTable() {
 
 function GameStatePanel({
   gameState,
-  onCategorySelect,
   onEmptyPoolSpinAgain,
   onEraRespin,
   onPlayerSelect,
@@ -265,7 +281,6 @@ function GameStatePanel({
   playerPoolState,
 }: {
   gameState: GameState;
-  onCategorySelect: (category: AttributeCategory) => void;
   onEmptyPoolSpinAgain: () => Promise<void>;
   onEraRespin: () => Promise<void>;
   onPlayerSelect: (player: PlayerOption) => void;
@@ -275,167 +290,49 @@ function GameStatePanel({
   return (
     <section
       aria-label="Current game state"
-      className="border-2 border-[#f2b35e] bg-[#211b19] p-5 shadow-[8px_8px_0_#d8623d]"
+      className="border-2 border-[#171312] bg-[#fdfaf1] p-5 shadow-[8px_8px_0_#d8623d]"
     >
-      <div className="grid gap-3 sm:grid-cols-3">
-        <StateMetric label="Status" value={gameState.status} />
-        <StateMetric
-          label="Team respin"
-          value={gameState.respins.teamRespinAvailable ? "Available" : "Used"}
-        />
-        <StateMetric
-          label="Era respin"
-          value={gameState.respins.eraRespinAvailable ? "Available" : "Used"}
-        />
-      </div>
-
       <SpinPanel
         gameState={gameState}
         onEraRespin={onEraRespin}
         onTeamRespin={onTeamRespin}
       />
 
-      <CategorySelectionPanel
-        gameState={gameState}
-        onCategorySelect={onCategorySelect}
-      />
-
-      {gameState.status === "selectingPlayer" ? (
+      {gameState.status === "selectingPlayer" ||
+      gameState.status === "selectingCategory" ? (
         <PlayerPoolPanel
-          currentEraLabel={gameState.currentEra?.label ?? "Unknown era"}
-          currentTeamName={gameState.currentTeam?.name ?? "Unknown team"}
           playerPoolState={playerPoolState}
           onEmptyPoolSpinAgain={onEmptyPoolSpinAgain}
           onPlayerSelect={onPlayerSelect}
+          selectedPlayerVersionId={
+            gameState.selectedPlayerVersion?.playerVersionId ?? null
+          }
         />
       ) : null}
     </section>
   );
 }
 
-function CategorySelectionPanel({
-  gameState,
-  onCategorySelect,
-}: {
-  gameState: GameState;
-  onCategorySelect: (category: AttributeCategory) => void;
-}) {
-  const selectedPlayer = gameState.selectedPlayerVersion;
-
-  return (
-    <div className="mt-6">
-      <h2 className="text-xl font-black">Attribute Choice</h2>
-      {selectedPlayer ? (
-        <div
-          data-testid="selected-player-summary"
-          className="mt-4 border border-[#4d403b] bg-[#171312] p-4"
-        >
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#f2b35e]">
-            Selected player
-          </p>
-          <p className="mt-2 text-lg font-black text-white">
-            {selectedPlayer.name}
-          </p>
-          <p className="mt-1 text-sm font-bold text-[#d8cbc1]">
-            {selectedPlayer.versionLabel}
-          </p>
-        </div>
-      ) : null}
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {MVP_CATEGORIES.map((category) => {
-          const completedCategory = gameState.completedCategories.some(
-            (completed) => completed.category === category,
-          );
-          const selectedCategory = gameState.selectedCategory === category;
-          const availableCategory =
-            gameState.status === "selectingCategory" &&
-            selectedPlayer !== null &&
-            !completedCategory &&
-            gameState.availableCategories.includes(category);
-          const rating =
-            selectedPlayer === null
-              ? null
-              : getPlayerOptionRating(selectedPlayer, category);
-          const buttonLabel = categoryLabels[category];
-          const statusLabel = completedCategory
-            ? "Locked"
-            : selectedCategory
-              ? "Selected"
-              : availableCategory
-                ? `Apply ${rating}`
-                : "Unavailable";
-
-          return (
-            <div data-testid="category-card" key={category}>
-              <button
-                data-testid={
-                  availableCategory ? "available-category" : "locked-category"
-                }
-                type="button"
-                disabled={!availableCategory}
-                className="min-h-24 w-full border border-[#4d403b] bg-[#fff8ea] p-4 text-left text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#f2b35e] focus:ring-offset-2 focus:ring-offset-[#211b19] disabled:cursor-not-allowed disabled:bg-[#2c2522] disabled:text-[#95867e]"
-                aria-pressed={selectedCategory}
-                onClick={() => {
-                  onCategorySelect(category);
-                }}
-              >
-                <span className="block text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
-                  {statusLabel}
-                </span>
-                <span className="mt-2 block text-lg font-black">
-                  {buttonLabel}
-                </span>
-                {rating !== null && !completedCategory ? (
-                  <span className="mt-3 block text-2xl font-black">{rating}</span>
-                ) : null}
-              </button>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 function PlayerPoolPanel({
-  currentEraLabel,
-  currentTeamName,
   onEmptyPoolSpinAgain,
   onPlayerSelect,
   playerPoolState,
+  selectedPlayerVersionId,
 }: {
-  currentEraLabel: string;
-  currentTeamName: string;
   onEmptyPoolSpinAgain: () => Promise<void>;
   onPlayerSelect: (player: PlayerOption) => void;
   playerPoolState: PlayerPoolState;
+  selectedPlayerVersionId: string | null;
 }) {
   return (
     <div
       data-testid="player-pool-panel"
-      className="mt-6 border border-[#4d403b] bg-[#171312] p-4"
+      className="mt-6 border border-[#d6c7a8] bg-[#fdfaf1] p-4"
     >
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#f2b35e]">
-        Player Pool
-      </p>
-      <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-lg font-black text-white">Choose a player</p>
-          <p className="mt-1 text-sm font-bold text-[#d8cbc1]">
-            {currentTeamName} / {currentEraLabel}
-          </p>
-        </div>
-        {playerPoolState.status === "ready" ? (
-          <p className="text-sm font-black text-[#f2b35e]">
-            {playerPoolState.players.length} available
-          </p>
-        ) : null}
-      </div>
-
       {playerPoolState.status === "loading" ? (
         <div
           data-testid="player-pool-loading"
-          className="mt-4 border border-[#4d403b] bg-[#211b19] p-4 text-sm font-bold text-[#d8cbc1]"
+          className="border border-[#d6c7a8] bg-white p-4 text-sm font-bold text-[#554943]"
         >
           Loading player pool
         </div>
@@ -444,7 +341,7 @@ function PlayerPoolPanel({
       {playerPoolState.status === "error" ? (
         <div
           role="alert"
-          className="mt-4 border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
+          className="border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
         >
           <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
             Player pool unavailable
@@ -457,17 +354,14 @@ function PlayerPoolPanel({
         <div
           data-testid="player-pool-empty"
           role="alert"
-          className="mt-4 border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
+          className="border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
         >
           <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
             No eligible players found
           </p>
-          <p className="mt-2 text-base font-bold">
-            {currentTeamName} / {currentEraLabel}
-          </p>
           <button
             type="button"
-            className="mt-4 inline-flex min-h-11 items-center justify-center border border-[#171312] bg-[#171312] px-4 text-sm font-black text-white transition-colors hover:bg-[#352b27] focus:outline-none focus:ring-2 focus:ring-[#171312] focus:ring-offset-2 focus:ring-offset-[#fff8ea]"
+            className="mt-4 inline-flex min-h-11 items-center justify-center border border-[#171312] bg-[#171312] px-4 text-sm font-black text-white transition-colors hover:bg-[#352b27] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fff8ea]"
             onClick={() => {
               void onEmptyPoolSpinAgain();
             }}
@@ -478,12 +372,13 @@ function PlayerPoolPanel({
       ) : null}
 
       {playerPoolState.status === "ready" && playerPoolState.players.length > 0 ? (
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="max-h-[28rem] space-y-3 overflow-y-auto pr-1">
           {playerPoolState.players.map((player) => (
             <PlayerCard
               key={player.playerVersionId}
               onSelect={onPlayerSelect}
               player={player}
+              selected={player.playerVersionId === selectedPlayerVersionId}
             />
           ))}
         </div>
@@ -495,36 +390,46 @@ function PlayerPoolPanel({
 function PlayerCard({
   onSelect,
   player,
+  selected,
 }: {
   onSelect: (player: PlayerOption) => void;
   player: PlayerOption;
+  selected: boolean;
 }) {
   return (
     <button
       data-testid="player-card"
       type="button"
-      className="min-h-32 w-full border border-[#4d403b] bg-[#fff8ea] p-4 text-left text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#f2b35e] focus:ring-offset-2 focus:ring-offset-[#171312]"
+      aria-pressed={selected}
+      className={`w-full border p-3 text-left text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1] sm:p-4 ${
+        selected
+          ? "border-[#171312] bg-[#fff8ea] shadow-[4px_4px_0_#d8623d]"
+          : "border-[#d6c7a8] bg-white"
+      }`}
       onClick={() => {
         onSelect(player);
       }}
     >
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-lg font-black">{player.name}</h3>
-          <p className="mt-1 text-sm font-bold text-[#7d6d5d]">
+      <div className="flex min-w-0 items-center justify-between gap-3 sm:gap-5">
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-base font-black sm:text-lg">
+            {player.name}
+          </h3>
+          <p className="mt-1 truncate text-xs font-bold text-[#7d6d5d] sm:text-sm">
             {player.versionLabel}
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid shrink-0 grid-cols-5 gap-1 sm:gap-2">
           {MVP_CATEGORIES.map((category) => (
             <div
               key={category}
-              className="border border-[#171312] bg-white px-2 py-2 text-center"
+              className="w-8 border border-[#171312] bg-white px-1 py-2 text-center sm:w-14"
             >
-              <p className="text-[0.65rem] font-bold uppercase tracking-[0.1em] text-[#7d6d5d]">
-                {categoryLabels[category]}
+              <p className="text-[0.55rem] font-bold uppercase leading-none text-[#7d6d5d] sm:text-[0.65rem]">
+                <span className="sr-only">{categoryLabels[category]}</span>
+                <span aria-hidden="true">{categoryShortLabels[category]}</span>
               </p>
-              <p className="text-xl font-black">
+              <p className="mt-1 text-base font-black sm:text-xl">
                 {getPlayerOptionRating(player, category)}
               </p>
             </div>
@@ -545,20 +450,23 @@ function SpinPanel({
   onTeamRespin: () => Promise<void>;
 }) {
   const teamRespinDisabled =
-    gameState.status !== "selectingPlayer" ||
+    (gameState.status !== "selectingPlayer" &&
+      gameState.status !== "selectingCategory") ||
     !gameState.respins.teamRespinAvailable;
   const eraRespinDisabled =
-    gameState.status !== "selectingPlayer" ||
+    (gameState.status !== "selectingPlayer" &&
+      gameState.status !== "selectingCategory") ||
     !gameState.respins.eraRespinAvailable;
+  const spinGridClass = gameState.spinError
+    ? "mt-4 grid gap-3 sm:grid-cols-2"
+    : "grid gap-3 sm:grid-cols-2";
 
   return (
     <div className="mt-6">
-      <h2 className="text-xl font-black">Round Spin</h2>
-
       {gameState.spinError ? (
         <div
           role="alert"
-          className="mt-4 border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
+          className="border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
         >
           <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
             Spin unavailable
@@ -567,38 +475,39 @@ function SpinPanel({
         </div>
       ) : null}
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <SpinCard
-          testId="team-display"
-          label="Team"
-          value={
-            gameState.currentTeam
-              ? `${gameState.currentTeam.name} (${gameState.currentTeam.abbreviation})`
-              : "Spinning..."
-          }
-        />
-        <SpinCard
-          testId="era-display"
-          label="Era"
-          value={gameState.currentEra ? gameState.currentEra.label : "Spinning..."}
-        />
-      </div>
-
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <RespinButton
-          disabled={teamRespinDisabled}
-          label="Team Respin"
-          testId="team-respin-button"
-          usedRound={gameState.respins.teamRespinUsedRound}
-          onClick={onTeamRespin}
-        />
-        <RespinButton
-          disabled={eraRespinDisabled}
-          label="Era Respin"
-          testId="era-respin-button"
-          usedRound={gameState.respins.eraRespinUsedRound}
-          onClick={onEraRespin}
-        />
+      <div className={spinGridClass}>
+        <div className="space-y-2">
+          <RespinButton
+            disabled={teamRespinDisabled}
+            label="Team Respin"
+            testId="team-respin-button"
+            usedRound={gameState.respins.teamRespinUsedRound}
+            onClick={onTeamRespin}
+          />
+          <SpinCard
+            testId="team-display"
+            label="Team"
+            value={
+              gameState.currentTeam
+                ? `${gameState.currentTeam.name} (${gameState.currentTeam.abbreviation})`
+                : "Spinning..."
+            }
+          />
+        </div>
+        <div className="space-y-2">
+          <RespinButton
+            disabled={eraRespinDisabled}
+            label="Era Respin"
+            testId="era-respin-button"
+            usedRound={gameState.respins.eraRespinUsedRound}
+            onClick={onEraRespin}
+          />
+          <SpinCard
+            testId="era-display"
+            label="Era"
+            value={gameState.currentEra ? gameState.currentEra.label : "Spinning..."}
+          />
+        </div>
       </div>
     </div>
   );
@@ -620,7 +529,7 @@ function RespinButton({
   return (
     <button
       data-testid={testId}
-      className="inline-flex min-h-12 w-full items-center justify-between gap-3 border border-[#f2b35e] bg-[#171312] px-4 py-3 text-left text-sm font-black text-white transition-colors hover:bg-[#352b27] focus:outline-none focus:ring-2 focus:ring-[#f2b35e] focus:ring-offset-2 focus:ring-offset-[#171312] disabled:cursor-not-allowed disabled:border-[#4d403b] disabled:bg-[#2c2522] disabled:text-[#95867e]"
+      className="group inline-flex min-h-9 w-full items-center justify-between gap-3 border border-[#d8623d] bg-[#fff8ea] px-3 py-2 text-left text-xs font-black text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1] disabled:cursor-not-allowed disabled:border-[#d6c7a8] disabled:bg-white disabled:text-[#8c7b6c]"
       type="button"
       disabled={disabled}
       onClick={() => {
@@ -628,7 +537,7 @@ function RespinButton({
       }}
     >
       <span>{label}</span>
-      <span className="text-xs uppercase tracking-[0.14em]">
+      <span className="text-[0.65rem] uppercase text-[#9d3b2f] group-disabled:text-[#8c7b6c]">
         {usedRound === null ? "Available" : `Used R${usedRound}`}
       </span>
     </button>
@@ -647,127 +556,98 @@ function SpinCard({
   return (
     <div
       data-testid={testId}
-      className="min-h-28 border border-[#4d403b] bg-[#fff8ea] p-4 text-[#171312]"
+      aria-label={label}
+      className="flex min-h-14 items-center border border-[#d6c7a8] bg-white px-4 py-3 text-[#171312]"
     >
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
-        {label}
+      <p className="min-w-0 break-words text-lg font-black sm:text-xl">
+        {value}
       </p>
-      <p className="mt-3 break-words text-2xl font-black">{value}</p>
     </div>
   );
 }
 
 function ProgressPanel({
   gameState,
-  startGame,
+  onCategorySelect,
 }: {
   gameState: GameState;
-  startGame: () => Promise<void>;
+  onCategorySelect: (category: AttributeCategory) => void;
 }) {
+  const selectedPlayer = gameState.selectedPlayerVersion;
+
   return (
     <aside
       aria-label="Build progress"
-      className="border border-[#4d403b] bg-[#211b19] p-5"
+      className="border border-[#171312] bg-[#fdfaf1] p-5"
     >
       <h2 className="text-xl font-black">Build Progress</h2>
-      <dl className="mt-5 space-y-4 text-sm">
-        <ProgressRow
-          label="Completed categories"
-          value={String(gameState.completedCategories.length)}
-        />
-        <ProgressRow
-          label="Used player versions"
-          value={String(gameState.usedPlayerVersionIds.length)}
-        />
-        <ProgressRow
-          label="Round history"
-          value={String(gameState.roundHistory.length)}
-        />
-        <ProgressRow
-          label="Final score"
-          value={gameState.finalScore === null ? "Not set" : String(gameState.finalScore)}
-        />
-        <ProgressRow
-          label="Final rank"
-          value={gameState.finalRank === null ? "Not set" : gameState.finalRank}
-        />
-      </dl>
+      <div className="mt-5 space-y-3">
+        {MVP_CATEGORIES.map((category) => {
+          const completedCategory = gameState.completedCategories.find(
+            (completed) => completed.category === category,
+          );
+          const canApply =
+            gameState.status === "selectingCategory" &&
+            selectedPlayer !== null &&
+            completedCategory === undefined &&
+            gameState.availableCategories.includes(category);
+          const rating =
+            completedCategory?.rating ??
+            (selectedPlayer ? getPlayerOptionRating(selectedPlayer, category) : null);
+          const statusLabel = completedCategory
+            ? "Locked"
+            : canApply
+              ? "Apply selected player"
+              : selectedPlayer
+                ? "Unavailable"
+                : "Select a player";
 
-      <div className="mt-6">
-        <h3 className="text-sm font-black uppercase tracking-[0.14em] text-[#f2b35e]">
-          Active Build
-        </h3>
-        {gameState.completedCategories.length === 0 ? (
-          <p className="mt-3 border border-[#4d403b] bg-[#171312] p-4 text-sm font-bold text-[#d8cbc1]">
-            No categories completed
-          </p>
-        ) : (
-          <div className="mt-3 space-y-3">
-            {gameState.completedCategories.map((completedCategory) => (
-              <div
-                data-testid="completed-category"
-                key={completedCategory.category}
-                className="border border-[#4d403b] bg-[#171312] p-4"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#f2b35e]">
-                      {categoryLabels[completedCategory.category]}
-                    </p>
-                    <p className="mt-2 text-base font-black text-white">
-                      {completedCategory.playerName}
-                    </p>
-                    <p className="mt-1 text-xs font-bold text-[#d8cbc1]">
-                      {completedCategory.playerVersionLabel}
-                    </p>
-                    <p className="mt-1 text-xs font-bold text-[#95867e]">
-                      {completedCategory.teamName} / {completedCategory.eraLabel}
-                    </p>
-                  </div>
-                  <div className="min-w-16 border border-[#f2b35e] bg-[#fff8ea] px-3 py-2 text-center text-[#171312]">
-                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
-                      Rating
-                    </p>
-                    <p className="text-2xl font-black">
-                      {completedCategory.rating}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+          return (
+            <button
+              data-testid={
+                completedCategory
+                  ? "completed-category"
+                  : canApply
+                    ? "available-category"
+                    : "locked-category"
+              }
+              key={category}
+              type="button"
+              disabled={!canApply}
+              className="w-full border border-[#d6c7a8] bg-white p-4 text-left text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1] disabled:cursor-not-allowed disabled:bg-[#efe5d3] disabled:text-[#8c7b6c]"
+              onClick={() => {
+                onCategorySelect(category);
+              }}
+            >
+              <span className="flex items-start justify-between gap-3">
+                <span className="min-w-0">
+                  <span className="block text-xs font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
+                    {categoryLabels[category]}
+                  </span>
+                  <span className="mt-2 block truncate text-base font-black text-[#171312]">
+                    {completedCategory?.playerName ??
+                      selectedPlayer?.name ??
+                      "Empty"}
+                  </span>
+                  <span className="mt-1 block truncate text-xs font-bold text-[#7d6d5d]">
+                    {completedCategory
+                      ? `${completedCategory.teamName} / ${completedCategory.eraLabel}`
+                      : statusLabel}
+                  </span>
+                </span>
+                <span className="min-w-16 border border-[#d6c7a8] bg-[#fdfaf1] px-3 py-2 text-center text-[#171312]">
+                  <span className="block text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
+                    Rating
+                  </span>
+                  <span className="block text-2xl font-black">
+                    {rating ?? "--"}
+                  </span>
+                </span>
+              </span>
+            </button>
+          );
+        })}
       </div>
-
-      <button
-        className="mt-6 inline-flex min-h-12 w-full items-center justify-center bg-white px-5 text-base font-bold text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#f2b35e] focus:ring-offset-2 focus:ring-offset-[#171312]"
-        type="button"
-        onClick={() => {
-          void startGame();
-        }}
-      >
-        New Game
-      </button>
     </aside>
-  );
-}
-
-function StateMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="border border-[#4d403b] bg-[#171312] p-4">
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#f2b35e]">
-        {label}
-      </p>
-      <p className="mt-2 break-words text-xl font-black">{value}</p>
-    </div>
-  );
-}
-
-function ProgressRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-4 border-b border-[#4d403b] pb-3">
-      <dt className="text-[#d8cbc1]">{label}</dt>
-      <dd className="text-right font-black text-white">{value}</dd>
-    </div>
   );
 }
