@@ -231,19 +231,22 @@ export function GameTable() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8f3e7] px-6 py-10 text-[#171312] sm:px-10">
+    <main className="court-shell px-6 py-10 sm:px-10">
       <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-5xl flex-col justify-center gap-8">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-[#9d3b2f]">
-              Active game
+            <p className="micro-label mb-4">
+              Active stat lab
             </p>
-            <h1 className="text-4xl font-black leading-tight sm:text-5xl">
+            <h1 className="screen-title text-4xl leading-tight sm:text-5xl">
               Round {gameState.currentRound || 1} of {gameState.totalRounds}
             </h1>
+            <p className="mt-3 font-mono text-sm font-black text-[#ffd166]">
+              {gameState.status}
+            </p>
           </div>
           <button
-            className="inline-flex min-h-12 w-full items-center justify-center bg-[#171312] px-5 text-base font-bold text-white transition-colors hover:bg-[#352b27] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#f8f3e7] sm:w-auto"
+            className="outline-button inline-flex min-h-12 w-full items-center justify-center px-5 text-base sm:w-auto"
             type="button"
             onClick={() => {
               void startGame();
@@ -290,7 +293,7 @@ function GameStatePanel({
   return (
     <section
       aria-label="Current game state"
-      className="border-2 border-[#171312] bg-[#fdfaf1] p-5 shadow-[8px_8px_0_#d8623d]"
+      className="arcade-panel p-5"
     >
       <SpinPanel
         gameState={gameState}
@@ -327,12 +330,12 @@ function PlayerPoolPanel({
   return (
     <div
       data-testid="player-pool-panel"
-      className="mt-6 border border-[#d6c7a8] bg-[#fdfaf1] p-4"
+      className="arcade-panel-soft mt-6 p-4"
     >
       {playerPoolState.status === "loading" ? (
         <div
           data-testid="player-pool-loading"
-          className="border border-[#d6c7a8] bg-white p-4 text-sm font-bold text-[#554943]"
+          className="scoreboard p-4 text-sm font-bold text-[#d7dfeb]"
         >
           Loading player pool
         </div>
@@ -341,9 +344,9 @@ function PlayerPoolPanel({
       {playerPoolState.status === "error" ? (
         <div
           role="alert"
-          className="border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
+          className="alert-panel p-4"
         >
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#ffb4b7]">
             Player pool unavailable
           </p>
           <p className="mt-2 text-base font-bold">{playerPoolState.message}</p>
@@ -354,14 +357,14 @@ function PlayerPoolPanel({
         <div
           data-testid="player-pool-empty"
           role="alert"
-          className="border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
+          className="alert-panel p-4"
         >
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#ffb4b7]">
             No eligible players found
           </p>
           <button
             type="button"
-            className="mt-4 inline-flex min-h-11 items-center justify-center border border-[#171312] bg-[#171312] px-4 text-sm font-black text-white transition-colors hover:bg-[#352b27] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fff8ea]"
+            className="arcade-button mt-4 inline-flex min-h-11 items-center justify-center px-4 text-sm"
             onClick={() => {
               void onEmptyPoolSpinAgain();
             }}
@@ -401,31 +404,29 @@ function PlayerCard({
       data-testid="player-card"
       type="button"
       aria-pressed={selected}
-      className={`w-full border p-3 text-left text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1] sm:p-4 ${
-        selected
-          ? "border-[#171312] bg-[#fff8ea] shadow-[4px_4px_0_#d8623d]"
-          : "border-[#d6c7a8] bg-white"
+      className={`player-option w-full p-3 text-left sm:p-4 ${
+        selected ? "is-selected" : ""
       }`}
       onClick={() => {
         onSelect(player);
       }}
     >
-      <div className="flex min-w-0 items-center justify-between gap-3 sm:gap-5">
-        <div className="min-w-0 flex-1">
+      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
+        <div className="min-w-0 sm:flex-1">
           <h3 className="truncate text-base font-black sm:text-lg">
             {player.name}
           </h3>
-          <p className="mt-1 truncate text-xs font-bold text-[#7d6d5d] sm:text-sm">
+          <p className="mt-1 truncate text-xs font-bold text-[#aab7c8] sm:text-sm">
             {player.versionLabel}
           </p>
         </div>
-        <div className="grid shrink-0 grid-cols-5 gap-1 sm:gap-2">
+        <div className="grid w-full grid-cols-5 gap-1 sm:w-auto sm:shrink-0 sm:gap-2">
           {MVP_CATEGORIES.map((category) => (
             <div
               key={category}
-              className="w-8 border border-[#171312] bg-white px-1 py-2 text-center sm:w-14"
+              className="stat-chip min-w-0 px-1 py-2 text-center sm:w-14"
             >
-              <p className="text-[0.55rem] font-bold uppercase leading-none text-[#7d6d5d] sm:text-[0.65rem]">
+              <p className="text-[0.55rem] font-bold uppercase leading-none text-[#19d3c5] sm:text-[0.65rem]">
                 <span className="sr-only">{categoryLabels[category]}</span>
                 <span aria-hidden="true">{categoryShortLabels[category]}</span>
               </p>
@@ -466,9 +467,9 @@ function SpinPanel({
       {gameState.spinError ? (
         <div
           role="alert"
-          className="border border-[#d8623d] bg-[#fff8ea] p-4 text-[#171312]"
+          className="alert-panel p-4"
         >
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#ffb4b7]">
             Spin unavailable
           </p>
           <p className="mt-2 text-base font-bold">{gameState.spinError.message}</p>
@@ -529,7 +530,7 @@ function RespinButton({
   return (
     <button
       data-testid={testId}
-      className="group inline-flex min-h-9 w-full items-center justify-between gap-3 border border-[#d8623d] bg-[#fff8ea] px-3 py-2 text-left text-xs font-black text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1] disabled:cursor-not-allowed disabled:border-[#d6c7a8] disabled:bg-white disabled:text-[#8c7b6c]"
+      className="outline-button group inline-flex min-h-9 w-full items-center justify-between gap-3 px-3 py-2 text-left text-xs"
       type="button"
       disabled={disabled}
       onClick={() => {
@@ -537,7 +538,7 @@ function RespinButton({
       }}
     >
       <span>{label}</span>
-      <span className="text-[0.65rem] uppercase text-[#9d3b2f] group-disabled:text-[#8c7b6c]">
+      <span className="text-[0.65rem] uppercase text-[#ffd166] group-disabled:text-[#7f8ea4]">
         {usedRound === null ? "Available" : `Used R${usedRound}`}
       </span>
     </button>
@@ -557,7 +558,7 @@ function SpinCard({
     <div
       data-testid={testId}
       aria-label={label}
-      className="flex min-h-14 items-center border border-[#d6c7a8] bg-white px-4 py-3 text-[#171312]"
+      className="scoreboard flex min-h-14 items-center px-4 py-3"
     >
       <p className="min-w-0 break-words text-lg font-black sm:text-xl">
         {value}
@@ -578,9 +579,9 @@ function ProgressPanel({
   return (
     <aside
       aria-label="Build progress"
-      className="border border-[#171312] bg-[#fdfaf1] p-5"
+      className="arcade-panel-soft p-5"
     >
-      <h2 className="text-xl font-black">Build Progress</h2>
+      <h2 className="text-xl font-black text-[#fff7e8]">Build Progress</h2>
       <div className="mt-5 space-y-3">
         {MVP_CATEGORIES.map((category) => {
           const completedCategory = gameState.completedCategories.find(
@@ -614,29 +615,31 @@ function ProgressPanel({
               key={category}
               type="button"
               disabled={!canApply}
-              className="w-full border border-[#d6c7a8] bg-white p-4 text-left text-[#171312] transition-colors hover:bg-[#f2b35e] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2 focus:ring-offset-[#fdfaf1] disabled:cursor-not-allowed disabled:bg-[#efe5d3] disabled:text-[#8c7b6c]"
+              className={`stat-card w-full p-4 text-left ${
+                completedCategory ? "is-complete" : canApply ? "is-ready" : ""
+              }`}
               onClick={() => {
                 onCategorySelect(category);
               }}
             >
               <span className="flex items-start justify-between gap-3">
                 <span className="min-w-0">
-                  <span className="block text-xs font-bold uppercase tracking-[0.14em] text-[#9d3b2f]">
+                  <span className="block text-xs font-bold uppercase tracking-[0.14em] text-[#ffd166]">
                     {categoryLabels[category]}
                   </span>
-                  <span className="mt-2 block truncate text-base font-black text-[#171312]">
+                  <span className="mt-2 block truncate text-base font-black text-[#fff7e8]">
                     {completedCategory?.playerName ??
                       selectedPlayer?.name ??
                       "Empty"}
                   </span>
-                  <span className="mt-1 block truncate text-xs font-bold text-[#7d6d5d]">
+                  <span className="mt-1 block truncate text-xs font-bold text-[#aab7c8]">
                     {completedCategory
                       ? `${completedCategory.teamName} / ${completedCategory.eraLabel}`
                       : statusLabel}
                   </span>
                 </span>
-                <span className="min-w-16 border border-[#d6c7a8] bg-[#fdfaf1] px-3 py-2 text-center text-[#171312]">
-                  <span className="block text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
+                <span className="stat-chip min-w-16 px-3 py-2 text-center">
+                  <span className="block text-xs font-bold uppercase tracking-[0.14em] text-[#19d3c5]">
                     Rating
                   </span>
                   <span className="block text-2xl font-black">

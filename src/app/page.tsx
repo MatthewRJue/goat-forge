@@ -10,51 +10,67 @@ const attributes = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#f8f3e7] text-[#171312]">
-      <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center gap-12 px-6 py-10 sm:px-10 lg:grid lg:grid-cols-[1fr_420px] lg:items-center">
+    <main className="court-shell">
+      <section className="hero-court mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center gap-10 px-6 py-10 sm:px-10 lg:grid lg:grid-cols-[1fr_440px] lg:items-center">
         <div className="max-w-2xl">
-          <p className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-[#9d3b2f]">
-            Build the all-time player
+          <p className="micro-label mb-4">
+            Five-round stat draft
           </p>
-          <h1 className="text-5xl font-black leading-none text-[#171312] sm:text-6xl">
+          <h1 className="screen-title text-5xl leading-none sm:text-7xl">
             GOAT Builder
           </h1>
-          <p className="mt-6 max-w-xl text-lg leading-8 text-[#554943]">
+          <p className="body-copy mt-6 max-w-xl text-lg leading-8">
             Spin an NBA team and era, choose one player version, and lock in
             the best part of their game across five categories.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               data-testid="start-game-button"
               href="/game"
-              className="inline-flex min-h-12 items-center justify-center bg-[#171312] px-6 text-base font-bold text-white transition-colors hover:bg-[#352b27] focus:outline-none focus:ring-2 focus:ring-[#d8623d] focus:ring-offset-2"
+              className="arcade-button inline-flex min-h-12 items-center justify-center px-6 text-base"
             >
               Start Game
             </Link>
+            <div className="scoreboard inline-flex min-h-12 items-center justify-center px-4 font-mono text-sm font-black text-[#19d3c5]">
+              5 ROUNDS / 1 BUILD
+            </div>
           </div>
         </div>
 
         <div
           aria-label="GOAT Builder attribute board"
-          className="border-2 border-[#171312] bg-[#fdfaf1] p-4 shadow-[8px_8px_0_#d8623d]"
+          className="arcade-panel p-4"
         >
+          <div className="scoreboard mb-4 flex items-center justify-between px-4 py-3">
+            <span className="font-mono text-xs font-black uppercase text-[#aab7c8]">
+              Attribute Console
+            </span>
+            <span className="font-mono text-xl font-black text-[#ffd166]">
+              000
+            </span>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             {attributes.map((attribute, index) => (
               <div
                 key={attribute}
-                className="min-h-24 border border-[#d6c7a8] bg-white p-4"
+                className="stat-card min-h-24 p-4"
               >
-                <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#7d6d5d]">
+                <p className="font-mono text-xs font-black uppercase text-[#19d3c5]">
                   Slot {index + 1}
                 </p>
-                <p className="mt-3 text-lg font-black text-[#171312]">
+                <p className="mt-3 text-lg font-black text-[#fff7e8]">
                   {attribute}
                 </p>
               </div>
             ))}
           </div>
-          <div className="mt-4 border border-[#171312] bg-[#d8623d] px-4 py-3 text-sm font-black uppercase tracking-[0.16em] text-white">
-            5 rounds. 1 build.
+          <div className="mt-4 grid grid-cols-[1fr_72px] gap-3">
+            <div className="scoreboard px-4 py-3 text-sm font-black uppercase tracking-[0.12em] text-[#fff7e8]">
+              Draft a legend
+            </div>
+            <div className="grid place-items-center rounded-full border-4 border-[#1f2937] bg-[#f47c20] font-mono text-xl font-black text-[#111827] shadow-[inset_-8px_-8px_0_rgba(124,45,18,0.35)]">
+              24
+            </div>
           </div>
         </div>
       </section>
