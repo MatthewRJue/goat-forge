@@ -681,7 +681,7 @@ describe("game reducer", () => {
     expect(state).toEqual(usedState);
   });
 
-  it("does not consume respins after player selection", () => {
+  it("uses a team respin after player selection and clears the selected player", () => {
     const selectingCategoryState = createSelectingCategoryState();
 
     const state = gameReducer(selectingCategoryState, {
@@ -690,7 +690,35 @@ describe("game reducer", () => {
       random: sequenceRandom(0.999),
     });
 
-    expect(state).toEqual(selectingCategoryState);
+    expect(state.status).toBe("selectingPlayer");
+    expect(state.currentTeam).toEqual(teams[1]);
+    expect(state.currentEra).toEqual(selectingCategoryState.currentEra);
+    expect(state.selectedPlayerVersion).toBeNull();
+    expect(state.selectedCategory).toBeNull();
+    expect(state.respins.teamRespinAvailable).toBe(false);
+    expect(state.respins.teamRespinUsedRound).toBe(1);
+    expect(state.completedCategories).toEqual([]);
+    expect(state.usedPlayerVersionIds).toEqual([]);
+  });
+
+  it("uses an era respin after player selection and clears the selected player", () => {
+    const selectingCategoryState = createSelectingCategoryState();
+
+    const state = gameReducer(selectingCategoryState, {
+      type: "USE_ERA_RESPIN",
+      eras,
+      random: sequenceRandom(0.999),
+    });
+
+    expect(state.status).toBe("selectingPlayer");
+    expect(state.currentTeam).toEqual(selectingCategoryState.currentTeam);
+    expect(state.currentEra).toEqual(eras[1]);
+    expect(state.selectedPlayerVersion).toBeNull();
+    expect(state.selectedCategory).toBeNull();
+    expect(state.respins.eraRespinAvailable).toBe(false);
+    expect(state.respins.eraRespinUsedRound).toBe(1);
+    expect(state.completedCategories).toEqual([]);
+    expect(state.usedPlayerVersionIds).toEqual([]);
   });
 
   it("allows a team respin to return the same team", () => {

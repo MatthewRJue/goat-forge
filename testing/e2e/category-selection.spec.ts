@@ -41,8 +41,8 @@ test("selecting a player reveals available attribute categories", async ({
   await expect(secondPlayerCard).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("player-pool-panel")).toBeVisible();
   await expect(page.getByTestId("available-category")).toHaveCount(5);
-  await expect(page.getByTestId("team-respin-button")).toBeDisabled();
-  await expect(page.getByTestId("era-respin-button")).toBeDisabled();
+  await expect(page.getByTestId("team-respin-button")).toBeEnabled();
+  await expect(page.getByTestId("era-respin-button")).toBeEnabled();
 });
 
 test("selecting an attribute completes the selected player category", async ({
@@ -100,4 +100,41 @@ test("player-first selection still works after respins", async ({ page }) => {
   await expect(page.getByTestId("available-category")).toHaveCount(5);
   await expect(page.getByTestId("team-respin-button")).toBeDisabled();
   await expect(page.getByTestId("era-respin-button")).toBeDisabled();
+});
+
+test("respins remain available after player selection until an attribute is applied", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("goat-builder-test-random", "first");
+  });
+  await page.goto("/game");
+
+  const firstPlayerCard = page.getByTestId("player-card").first();
+
+  await expect(firstPlayerCard).toBeVisible();
+  await firstPlayerCard.click();
+
+  await expect(firstPlayerCard).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("available-category")).toHaveCount(5);
+
+  await page.getByTestId("team-respin-button").click();
+
+  await expect(page.getByTestId("team-respin-button")).toBeDisabled();
+  await expect(page.getByTestId("era-respin-button")).toBeEnabled();
+  await expect(page.getByTestId("player-pool-panel")).toBeVisible();
+  await expect(page.getByTestId("available-category")).toHaveCount(0);
+  await expect(page.getByTestId("locked-category")).toHaveCount(5);
+  await expect(page.getByTestId("player-card").first()).toHaveAttribute(
+    "aria-pressed",
+    "false",
+  );
+
+  await page.getByTestId("player-card").first().click();
+
+  await expect(page.getByTestId("player-card").first()).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(page.getByTestId("available-category")).toHaveCount(5);
 });

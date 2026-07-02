@@ -355,7 +355,7 @@ Can only be used if:
 
 ```text
 teamRespinAvailable = true
-status = selectingPlayer
+status = selectingPlayer or selectingCategory
 ```
 
 Expected behavior:
@@ -363,6 +363,9 @@ Expected behavior:
 ```text
 Generate new team
 Keep current era unchanged
+Clear selectedPlayerVersion
+Clear selectedCategory
+Set status to selectingPlayer
 Set teamRespinAvailable to false
 Set teamRespinUsedRound to currentRound
 ```
@@ -377,7 +380,7 @@ Can only be used if:
 
 ```text
 eraRespinAvailable = true
-status = selectingPlayer
+status = selectingPlayer or selectingCategory
 ```
 
 Expected behavior:
@@ -385,6 +388,9 @@ Expected behavior:
 ```text
 Generate new era
 Keep current team unchanged
+Clear selectedPlayerVersion
+Clear selectedCategory
+Set status to selectingPlayer
 Set eraRespinAvailable to false
 Set eraRespinUsedRound to currentRound
 ```
@@ -394,6 +400,8 @@ Set eraRespinUsedRound to currentRound
 ## Use Both Respins
 
 The user may use both respins during the same round.
+
+If either respin is used after a player has been selected but before an attribute has been applied, the selected player is cleared and the user returns to player selection for the updated team-era pool.
 
 Expected behavior:
 

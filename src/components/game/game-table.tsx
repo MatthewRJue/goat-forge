@@ -450,10 +450,12 @@ function SpinPanel({
   onTeamRespin: () => Promise<void>;
 }) {
   const teamRespinDisabled =
-    gameState.status !== "selectingPlayer" ||
+    (gameState.status !== "selectingPlayer" &&
+      gameState.status !== "selectingCategory") ||
     !gameState.respins.teamRespinAvailable;
   const eraRespinDisabled =
-    gameState.status !== "selectingPlayer" ||
+    (gameState.status !== "selectingPlayer" &&
+      gameState.status !== "selectingCategory") ||
     !gameState.respins.eraRespinAvailable;
   const spinGridClass = gameState.spinError
     ? "mt-4 grid gap-3 sm:grid-cols-2"

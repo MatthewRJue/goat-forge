@@ -44,6 +44,7 @@ Relevant docs:
 * Keep the player pool visible after a player is selected.
 * Visually highlight the currently selected player card.
 * Allow selecting another player card before choosing an attribute.
+* Keep unused respins available after selecting a player until an attribute is applied.
 * Let the user click an unfilled build progress attribute to apply the selected player's rating.
 * Prevent already filled attributes from being selected again.
 * Remove the separate attribute selection page/panel from the main game area.
@@ -55,6 +56,7 @@ Relevant docs:
 * Before a player is selected, unfilled build progress attributes are visible but cannot be applied.
 * Selecting a player keeps the player list visible and highlights the selected player card.
 * Selecting a different player updates the highlighted card before an attribute is applied.
+* Using a respin after selecting a player clears the highlighted player and returns the round to player selection.
 * Clicking an unfilled build progress attribute after selecting a player applies that selected player's rating.
 * Filled attributes display their selected player, team, era, and rating.
 * Filled attributes are disabled and cannot be selected again.
