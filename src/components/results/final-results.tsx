@@ -47,9 +47,9 @@ export function FinalResults({
         <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">
           <section
             aria-label="Final build"
-            className="arcade-panel p-5"
+            className="game-panel p-5"
           >
-            <h2 className="text-xl font-black text-[#fff7e8]">Final Build</h2>
+            <h2 className="text-xl font-black text-[#f7f2e8]">Final Build</h2>
             <div className="mt-5 grid gap-3">
               {completedCategories.map((completedCategory) => (
                 <ResultCategoryRow
@@ -62,29 +62,29 @@ export function FinalResults({
 
           <aside
             aria-label="Final score and rank"
-            className="arcade-panel-soft p-5"
+            className="game-panel-soft p-5"
           >
-            <h2 className="text-xl font-black text-[#fff7e8]">Scorecard</h2>
+            <h2 className="text-xl font-black text-[#f7f2e8]">Scorecard</h2>
             <dl className="mt-5 grid gap-3">
               <div
                 data-testid="final-score"
-                className="scoreboard p-4"
+                className="stat-strip p-4"
               >
-                <dt className="text-xs font-bold uppercase tracking-[0.14em] text-[#19d3c5]">
+                <dt className="text-xs font-bold uppercase tracking-[0.14em] text-[#36c4b4]">
                   Final Score
                 </dt>
-                <dd className="mt-2 font-mono text-5xl font-black text-[#ffd166]">
+                <dd className="mt-2 font-mono text-5xl font-black text-[#e9bd6a]">
                   {finalScore}
                 </dd>
               </div>
               <div
                 data-testid="final-rank"
-                className="scoreboard p-4"
+                className="stat-strip p-4"
               >
-                <dt className="text-xs font-bold uppercase tracking-[0.14em] text-[#19d3c5]">
+                <dt className="text-xs font-bold uppercase tracking-[0.14em] text-[#36c4b4]">
                   Final Rank
                 </dt>
-                <dd className="mt-2 text-3xl font-black text-[#fff7e8]">
+                <dd className="mt-2 text-3xl font-black text-[#f7f2e8]">
                   {finalRank}
                 </dd>
               </div>
@@ -92,7 +92,7 @@ export function FinalResults({
 
             <button
               data-testid="play-again-button"
-              className="arcade-button mt-6 inline-flex min-h-12 w-full items-center justify-center px-5 text-base"
+              className="primary-action mt-6 inline-flex min-h-12 w-full items-center justify-center px-5 text-base"
               onClick={onPlayAgain}
               type="button"
             >
@@ -117,12 +117,12 @@ function ResultCategoryRow({
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-[#ffd166]">
+          <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-[#e9bd6a]">
             {categoryLabels[completedCategory.category]}
           </h3>
           <p
             data-testid="final-result-player"
-            className="mt-2 text-lg font-black text-[#fff7e8]"
+            className="mt-2 text-lg font-black text-[#f7f2e8]"
           >
             {completedCategory.playerName}
           </p>
@@ -140,7 +140,7 @@ function ResultCategoryRow({
           data-testid="final-result-rating"
           className="stat-chip min-w-20 px-3 py-2 text-center"
         >
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#19d3c5]">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#36c4b4]">
             Rating
           </p>
           <p className="text-3xl font-black">{completedCategory.rating}</p>

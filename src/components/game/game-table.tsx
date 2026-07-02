@@ -241,7 +241,7 @@ export function GameTable() {
             <h1 className="screen-title text-4xl leading-tight sm:text-5xl">
               Round {gameState.currentRound || 1} of {gameState.totalRounds}
             </h1>
-            <p className="mt-3 font-mono text-sm font-black text-[#ffd166]">
+            <p className="mt-3 font-mono text-sm font-black text-[#e9bd6a]">
               {gameState.status}
             </p>
           </div>
@@ -293,7 +293,7 @@ function GameStatePanel({
   return (
     <section
       aria-label="Current game state"
-      className="arcade-panel p-5"
+      className="game-panel p-5"
     >
       <SpinPanel
         gameState={gameState}
@@ -330,12 +330,12 @@ function PlayerPoolPanel({
   return (
     <div
       data-testid="player-pool-panel"
-      className="arcade-panel-soft mt-6 p-4"
+      className="game-panel-soft mt-6 p-4"
     >
       {playerPoolState.status === "loading" ? (
         <div
           data-testid="player-pool-loading"
-          className="scoreboard p-4 text-sm font-bold text-[#d7dfeb]"
+          className="stat-strip p-4 text-sm font-bold text-[#d7dfeb]"
         >
           Loading player pool
         </div>
@@ -364,7 +364,7 @@ function PlayerPoolPanel({
           </p>
           <button
             type="button"
-            className="arcade-button mt-4 inline-flex min-h-11 items-center justify-center px-4 text-sm"
+            className="primary-action mt-4 inline-flex min-h-11 items-center justify-center px-4 text-sm"
             onClick={() => {
               void onEmptyPoolSpinAgain();
             }}
@@ -426,7 +426,7 @@ function PlayerCard({
               key={category}
               className="stat-chip min-w-0 px-1 py-2 text-center sm:w-14"
             >
-              <p className="text-[0.55rem] font-bold uppercase leading-none text-[#19d3c5] sm:text-[0.65rem]">
+              <p className="text-[0.55rem] font-bold uppercase leading-none text-[#36c4b4] sm:text-[0.65rem]">
                 <span className="sr-only">{categoryLabels[category]}</span>
                 <span aria-hidden="true">{categoryShortLabels[category]}</span>
               </p>
@@ -538,7 +538,7 @@ function RespinButton({
       }}
     >
       <span>{label}</span>
-      <span className="text-[0.65rem] uppercase text-[#ffd166] group-disabled:text-[#7f8ea4]">
+      <span className="text-[0.65rem] uppercase text-[#e9bd6a] group-disabled:text-[#7f8ea4]">
         {usedRound === null ? "Available" : `Used R${usedRound}`}
       </span>
     </button>
@@ -558,7 +558,7 @@ function SpinCard({
     <div
       data-testid={testId}
       aria-label={label}
-      className="scoreboard flex min-h-14 items-center px-4 py-3"
+      className="stat-strip flex min-h-14 items-center px-4 py-3"
     >
       <p className="min-w-0 break-words text-lg font-black sm:text-xl">
         {value}
@@ -579,9 +579,9 @@ function ProgressPanel({
   return (
     <aside
       aria-label="Build progress"
-      className="arcade-panel-soft p-5"
+      className="game-panel-soft p-5"
     >
-      <h2 className="text-xl font-black text-[#fff7e8]">Build Progress</h2>
+      <h2 className="text-xl font-black text-[#f7f2e8]">Build Progress</h2>
       <div className="mt-5 space-y-3">
         {MVP_CATEGORIES.map((category) => {
           const completedCategory = gameState.completedCategories.find(
@@ -624,10 +624,10 @@ function ProgressPanel({
             >
               <span className="flex items-start justify-between gap-3">
                 <span className="min-w-0">
-                  <span className="block text-xs font-bold uppercase tracking-[0.14em] text-[#ffd166]">
+                  <span className="block text-xs font-bold uppercase tracking-[0.14em] text-[#e9bd6a]">
                     {categoryLabels[category]}
                   </span>
-                  <span className="mt-2 block truncate text-base font-black text-[#fff7e8]">
+                  <span className="mt-2 block truncate text-base font-black text-[#f7f2e8]">
                     {completedCategory?.playerName ??
                       selectedPlayer?.name ??
                       "Empty"}
@@ -639,7 +639,7 @@ function ProgressPanel({
                   </span>
                 </span>
                 <span className="stat-chip min-w-16 px-3 py-2 text-center">
-                  <span className="block text-xs font-bold uppercase tracking-[0.14em] text-[#19d3c5]">
+                  <span className="block text-xs font-bold uppercase tracking-[0.14em] text-[#36c4b4]">
                     Rating
                   </span>
                   <span className="block text-2xl font-black">
