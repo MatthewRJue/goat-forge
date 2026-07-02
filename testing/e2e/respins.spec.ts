@@ -31,8 +31,8 @@ test("respins are visible and can each be used once", async ({ page }) => {
   await expect(eraRespinButton).toContainText("Used R1");
   await expect(page.getByTestId("player-pool-panel")).toBeVisible();
   await expect(page.getByTestId("player-card").first()).toBeVisible();
-  await expect(page.getByTestId("category-card")).toHaveCount(0);
   await expect(page.getByTestId("available-category")).toHaveCount(0);
+  await expect(page.getByTestId("locked-category")).toHaveCount(5);
 });
 
 test("both respins can be used during the same round", async ({ page }) => {
@@ -50,6 +50,6 @@ test("both respins can be used during the same round", async ({ page }) => {
   await expect(page.getByTestId("era-respin-button")).toBeDisabled();
   await expect(page.getByTestId("player-pool-panel")).toBeVisible();
   await expect(page.getByTestId("player-card").first()).toBeVisible();
-  await expect(page.getByTestId("category-card")).toHaveCount(0);
   await expect(page.getByTestId("available-category")).toHaveCount(0);
+  await expect(page.getByTestId("locked-category")).toHaveCount(5);
 });

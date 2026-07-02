@@ -52,12 +52,19 @@ test("player can complete a five-round game without creating a sixth round", asy
 
     await page.getByTestId("player-card").first().click();
 
-    await expect(page.getByTestId("selected-player-summary")).toBeVisible();
+    await expect(page.getByTestId("player-card").first()).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(page.getByTestId("player-pool-panel")).toBeVisible();
     await expect(page.getByTestId("available-category")).toHaveCount(
       categories.length - index,
     );
 
-    await page.getByRole("button", { name: new RegExp(category) }).click();
+    await page
+      .getByLabel("Build progress")
+      .getByRole("button", { name: new RegExp(category) })
+      .click();
 
     if (index < categories.length - 1) {
       await expect(page.getByTestId("completed-category")).toHaveCount(index + 1);
@@ -106,8 +113,8 @@ test("player can complete a five-round game without creating a sixth round", asy
   await expect(page.getByTestId("final-results-status")).toBeHidden();
   await expect(page.getByRole("heading", { name: "Round 1 of 5" })).toBeVisible();
   await expect(page.getByTestId("player-pool-panel")).toBeVisible();
-  await expect(page.getByTestId("category-card")).toHaveCount(0);
   await expect(page.getByTestId("completed-category")).toHaveCount(0);
+  await expect(page.getByTestId("locked-category")).toHaveCount(5);
   await expect(page.getByLabel("Build progress")).not.toContainText(
     "Final score",
   );
@@ -124,8 +131,14 @@ test("player can complete a five-round game without creating a sixth round", asy
 
   await page.getByTestId("player-card").first().click();
 
-  await expect(page.getByTestId("selected-player-summary")).toBeVisible();
+  await expect(page.getByTestId("player-card").first()).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   await expect(page.getByTestId("available-category")).toHaveCount(5);
-  await page.getByRole("button", { name: /Athleticism/ }).click();
+  await page
+    .getByLabel("Build progress")
+    .getByRole("button", { name: /Athleticism/ })
+    .click();
   await expect(page.getByTestId("completed-category")).toHaveCount(1);
 });

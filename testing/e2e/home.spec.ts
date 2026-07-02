@@ -22,6 +22,6 @@ test("home page opens the game route", async ({ page }) => {
   await expect(page.getByTestId("era-display")).toBeVisible();
   await expect(page.getByTestId("era-display")).not.toContainText("Spinning...");
   await expect(page.getByTestId("player-card").first()).toBeVisible();
-  await expect(page.getByTestId("category-card")).toHaveCount(0);
   await expect(page.getByTestId("available-category")).toHaveCount(0);
+  await expect(page.getByTestId("locked-category")).toHaveCount(5);
 });

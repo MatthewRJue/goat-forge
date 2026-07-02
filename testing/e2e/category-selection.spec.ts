@@ -20,33 +20,29 @@ test("selecting a player reveals available attribute categories", async ({
   await expect(
     page.getByRole("heading", { name: "Attribute Choice" }),
   ).toBeHidden();
-  await expect(page.getByTestId("category-card")).toHaveCount(0);
   await expect(page.getByTestId("available-category")).toHaveCount(0);
+  await expect(page.getByTestId("locked-category")).toHaveCount(5);
 
-  await page.getByTestId("player-card").first().click();
+  const firstPlayerCard = page.getByTestId("player-card").first();
+  const secondPlayerCard = page.getByTestId("player-card").nth(1);
 
-  await expect(
-    page.getByRole("heading", { name: "Attribute Choice" }),
-  ).toBeVisible();
-  await expect(page.getByTestId("selected-player-summary")).toContainText(
-    "Magic Johnson",
-  );
-  await expect(page.getByTestId("player-pool-panel")).toBeHidden();
-  await expect(page.getByTestId("available-category")).toHaveCount(5);
+  await firstPlayerCard.click();
 
-  await page.getByTestId("back-to-player-list-button").click();
-
-  await expect(page.getByTestId("selected-player-summary")).toBeHidden();
+  await expect(firstPlayerCard).toHaveAttribute("aria-pressed", "true");
   await expect(
     page.getByRole("heading", { name: "Attribute Choice" }),
   ).toBeHidden();
-  await expect(page.getByTestId("category-card")).toHaveCount(0);
   await expect(page.getByTestId("player-pool-panel")).toBeVisible();
-  await expect(page.getByTestId("player-card").first()).toContainText(
-    "Magic Johnson",
-  );
-  await expect(page.getByTestId("team-respin-button")).toBeEnabled();
-  await expect(page.getByTestId("era-respin-button")).toBeEnabled();
+  await expect(page.getByTestId("available-category")).toHaveCount(5);
+
+  await secondPlayerCard.click();
+
+  await expect(firstPlayerCard).toHaveAttribute("aria-pressed", "false");
+  await expect(secondPlayerCard).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("player-pool-panel")).toBeVisible();
+  await expect(page.getByTestId("available-category")).toHaveCount(5);
+  await expect(page.getByTestId("team-respin-button")).toBeDisabled();
+  await expect(page.getByTestId("era-respin-button")).toBeDisabled();
 });
 
 test("selecting an attribute completes the selected player category", async ({
@@ -60,7 +56,10 @@ test("selecting an attribute completes the selected player category", async ({
   await expect(page.getByTestId("player-pool-panel")).toBeVisible();
 
   await page.getByTestId("player-card").first().click();
-  await page.getByRole("button", { name: /Shooting/ }).click();
+  await page
+    .getByLabel("Build progress")
+    .getByRole("button", { name: /Shooting/ })
+    .click();
 
   await expect(
     page.getByRole("heading", { name: "Round 2 of 5" }),
@@ -72,9 +71,8 @@ test("selecting an attribute completes the selected player category", async ({
     "Magic Johnson",
   );
   await expect(page.getByTestId("completed-category")).toContainText("86");
-  await expect(page.getByTestId("category-card")).toHaveCount(0);
   await expect(page.getByTestId("available-category")).toHaveCount(0);
-  await expect(page.getByTestId("locked-category")).toHaveCount(0);
+  await expect(page.getByTestId("locked-category")).toHaveCount(4);
 });
 
 test("player-first selection still works after respins", async ({ page }) => {
@@ -89,12 +87,16 @@ test("player-first selection still works after respins", async ({ page }) => {
   await page.getByTestId("era-respin-button").click();
 
   await expect(page.getByTestId("player-card")).toHaveCount(2);
-  await expect(page.getByTestId("category-card")).toHaveCount(0);
   await expect(page.getByTestId("available-category")).toHaveCount(0);
+  await expect(page.getByTestId("locked-category")).toHaveCount(5);
 
   await page.getByTestId("player-card").first().click();
 
-  await expect(page.getByTestId("selected-player-summary")).toBeVisible();
+  await expect(page.getByTestId("player-card").first()).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(page.getByTestId("player-pool-panel")).toBeVisible();
   await expect(page.getByTestId("available-category")).toHaveCount(5);
   await expect(page.getByTestId("team-respin-button")).toBeDisabled();
   await expect(page.getByTestId("era-respin-button")).toBeDisabled();

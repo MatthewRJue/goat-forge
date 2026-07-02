@@ -474,11 +474,12 @@ describe("game reducer", () => {
     expect(state).toEqual(selectingCategoryState);
   });
 
-  it("does not select another player after category selection starts", () => {
+  it("updates the selected player before an attribute is applied", () => {
     const selectingCategoryState = createSelectingCategoryState();
     const alternatePlayer: PlayerOption = {
       ...player,
       playerVersionId: "version-2",
+      name: "Alternate Player",
     };
 
     const state = gameReducer(selectingCategoryState, {
@@ -486,7 +487,11 @@ describe("game reducer", () => {
       player: alternatePlayer,
     });
 
-    expect(state).toEqual(selectingCategoryState);
+    expect(state.status).toBe("selectingCategory");
+    expect(state.selectedPlayerVersion).toEqual(alternatePlayer);
+    expect(state.availableCategories).toEqual(MVP_CATEGORIES);
+    expect(state.completedCategories).toEqual([]);
+    expect(state.usedPlayerVersionIds).toEqual([]);
   });
 
   it("records respin usage in round history when applying an attribute", () => {
