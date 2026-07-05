@@ -47,7 +47,7 @@ Relevant docs:
 * Record the round where each respin was used.
 * Disable or otherwise make consumed respins unavailable for the rest of the game.
 * Allow both respins to be used during the same round.
-* Handle a respin returning the same team or era as valid MVP behavior.
+* Prevent a respin from returning the same team or era that was active when the user chose to respin.
 
 ## Acceptance Criteria
 
@@ -65,7 +65,7 @@ Relevant docs:
 
 Keep respin logic in `src/lib/game`, not inside button handlers. Buttons should dispatch game actions and render disabled states based on reducer state.
 
-The MVP does not need to prevent a respin from producing the same value.
+Product update: respins should now choose a different team or era when an alternate exists. If no alternate exists, the respin should not be consumed.
 
 Flow update: Story 010 revises the ongoing MVP flow so respins remain available before player selection and are no longer available after the player has been chosen for the round.
 
@@ -79,6 +79,6 @@ Flow update: Story 010 revises the ongoing MVP flow so respins remain available 
 ## Out of Scope
 
 * Extra respin rewards.
-* Preventing repeated respin results.
+* Extra rules beyond preventing the current respin value from repeating.
 * Paid respins or account-tied respins.
 * Animation polish beyond basic usable feedback.

@@ -27,13 +27,15 @@ export function applyTeamRespin({
     return state;
   }
 
-  const selection = selectRandomItem(teams, random);
+  const alternateTeams = teams.filter((team) => team.id !== state.currentTeam?.id);
+  const selection = selectRandomItem(alternateTeams, random);
 
   if (!selection.ok) {
     return {
       ...state,
       spinError: {
-        message: "No teams are available. Add team data before using a team respin.",
+        message:
+          "No alternate teams are available. Add more team data before using a team respin.",
       },
     };
   }
@@ -67,13 +69,15 @@ export function applyEraRespin({
     return state;
   }
 
-  const selection = selectRandomItem(eras, random);
+  const alternateEras = eras.filter((era) => era.id !== state.currentEra?.id);
+  const selection = selectRandomItem(alternateEras, random);
 
   if (!selection.ok) {
     return {
       ...state,
       spinError: {
-        message: "No eras are available. Add era data before using an era respin.",
+        message:
+          "No alternate eras are available. Add more era data before using an era respin.",
       },
     };
   }
