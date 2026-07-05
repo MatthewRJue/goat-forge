@@ -28,6 +28,15 @@ const categoryShortLabels: Record<AttributeCategory, string> = {
   defense: "DEF",
 };
 
+const gameStatusLabels: Record<GameState["status"], string> = {
+  idle: "Ready",
+  spinning: "Spinning matchup",
+  selectingPlayer: "Choose a player",
+  selectingCategory: "Choose an attribute",
+  roundComplete: "Round locked",
+  gameComplete: "Build complete",
+};
+
 type PlayerPoolState =
   | {
       status: "idle";
@@ -241,8 +250,8 @@ export function GameTable() {
             <h1 className="screen-title text-4xl leading-tight sm:text-5xl">
               Round {gameState.currentRound || 1} of {gameState.totalRounds}
             </h1>
-            <p className="mt-3 font-mono text-sm font-black text-warning">
-              {gameState.status}
+            <p className="state-pill mt-3">
+              {gameStatusLabels[gameState.status]}
             </p>
           </div>
           <button
@@ -616,7 +625,11 @@ function ProgressPanel({
               type="button"
               disabled={!canApply}
               className={`stat-card w-full p-4 text-left ${
-                completedCategory ? "is-complete" : canApply ? "is-ready" : ""
+                completedCategory
+                  ? "is-complete"
+                  : canApply
+                    ? "is-ready"
+                    : "is-locked"
               }`}
               onClick={() => {
                 onCategorySelect(category);
@@ -624,15 +637,15 @@ function ProgressPanel({
             >
               <span className="flex items-start justify-between gap-3">
                 <span className="min-w-0">
-                  <span className="block text-xs font-bold uppercase tracking-[0.14em] text-warning">
+                  <span className="category-name block text-xs font-bold uppercase tracking-[0.14em] text-warning">
                     {categoryLabels[category]}
                   </span>
-                  <span className="mt-2 block truncate text-base font-black text-foreground">
+                  <span className="category-title mt-2 block truncate text-base font-black text-foreground">
                     {completedCategory?.playerName ??
                       selectedPlayer?.name ??
                       "Empty"}
                   </span>
-                  <span className="mt-1 block truncate text-xs font-bold text-muted">
+                  <span className="category-detail mt-1 block truncate text-xs font-bold text-muted">
                     {completedCategory
                       ? `${completedCategory.teamName} / ${completedCategory.eraLabel}`
                       : statusLabel}

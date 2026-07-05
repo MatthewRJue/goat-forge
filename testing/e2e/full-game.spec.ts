@@ -72,7 +72,7 @@ test("player can complete a five-round game without creating a sixth round", asy
   }
 
   await expect(page.getByTestId("final-results-status")).toHaveText(
-    "gameComplete",
+    "Build complete",
   );
   await expect(
     page.getByRole("heading", { name: "Final Results" }),
