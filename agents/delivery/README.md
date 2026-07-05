@@ -21,6 +21,7 @@ The delivery docs should answer:
 agents/delivery
 +-- README.md
 +-- mvp.md
++-- phase-2.md
 +-- story-template.md
 +-- stories
     +-- 001-example-story.md
@@ -35,6 +36,12 @@ This is the source of truth for what should and should not be included before MV
 Before implementing any story, confirm that the work supports the MVP goal:
 
 > Is the core gameplay fun?
+
+## phase-2.md
+
+Defines the delivery plan after the playable MVP is complete.
+
+This is the source of truth for Phase 2 priorities, workstreams, and story planning guidance before creating post-MVP implementation stories.
 
 ## stories/
 
@@ -66,6 +73,8 @@ Before implementing a story, read:
 The project uses a version of Next.js with breaking changes from common assumptions. Read the relevant local Next.js docs before writing application code.
 
 Use `rg` in `node_modules/next/dist/docs/` to find the guide for the task area, such as routes, layouts, route handlers, server/client components, metadata, images, config, caching, or data fetching.
+
+For post-MVP work, also read `agents/delivery/phase-2.md` before creating or implementing Phase 2 stories.
 
 ---
 
