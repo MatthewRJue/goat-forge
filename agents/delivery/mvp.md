@@ -4,6 +4,14 @@
 
 This document defines the Minimum Viable Product (MVP) for GOAT Builder.
 
+## Status
+
+COMPLETE
+
+Future delivery work should use `agents/delivery/phase-2.md` unless it changes the completed MVP baseline.
+
+## Goal
+
 The purpose of the MVP is to answer one question:
 
 > **Is the core gameplay fun?**
