@@ -33,7 +33,7 @@ export function FinalResults({
             data-testid="final-results-status"
             className="micro-label mb-4"
           >
-            gameComplete
+            Build complete
           </p>
           <h1 className="screen-title text-4xl leading-tight sm:text-5xl">
             Final Results
@@ -117,22 +117,22 @@ function ResultCategoryRow({
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-warning">
+          <h3 className="category-name text-xs font-bold uppercase tracking-[0.14em] text-warning">
             {categoryLabels[completedCategory.category]}
           </h3>
           <p
             data-testid="final-result-player"
-            className="mt-2 text-lg font-black text-foreground"
+            className="category-title mt-2 text-lg font-black text-foreground"
           >
             {completedCategory.playerName}
           </p>
           <p
             data-testid="final-result-version"
-            className="mt-1 text-sm font-bold text-muted"
+            className="category-detail mt-1 text-sm font-bold text-muted"
           >
             {completedCategory.playerVersionLabel}
           </p>
-          <p className="mt-1 text-xs font-bold text-muted">
+          <p className="category-detail mt-1 text-xs font-bold text-muted">
             {completedCategory.teamName} / {completedCategory.eraLabel}
           </p>
         </div>
