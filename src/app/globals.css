@@ -427,7 +427,7 @@ a {
   right: 1rem;
   z-index: 50;
   display: inline-flex;
-  min-height: 2.5rem;
+  min-height: 2.75rem;
   align-items: center;
   gap: 0.125rem;
   border: 1px solid rgb(var(--border-rgb) / 0.84);
@@ -443,7 +443,7 @@ a {
 
 .theme-toggle span {
   display: inline-flex;
-  min-height: 2rem;
+  min-height: 2.25rem;
   min-width: 3.125rem;
   align-items: center;
   justify-content: center;

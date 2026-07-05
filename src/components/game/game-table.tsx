@@ -539,7 +539,7 @@ function RespinButton({
   return (
     <button
       data-testid={testId}
-      className="outline-button group inline-flex min-h-9 w-full items-center justify-between gap-3 px-3 py-2 text-left text-xs"
+      className="outline-button group inline-flex min-h-11 w-full items-center justify-between gap-3 px-3 py-2 text-left text-xs"
       type="button"
       disabled={disabled}
       onClick={() => {
