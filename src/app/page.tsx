@@ -31,7 +31,7 @@ export default function Home() {
             >
               Start Game
             </Link>
-            <div className="stat-strip inline-flex min-h-12 items-center justify-center px-4 font-mono text-sm font-black text-[#36c4b4]">
+            <div className="stat-strip inline-flex min-h-12 items-center justify-center px-4 font-mono text-sm font-black text-accent">
               5 ROUNDS / 1 BUILD
             </div>
           </div>
@@ -42,10 +42,10 @@ export default function Home() {
           className="game-panel p-4"
         >
           <div className="stat-strip mb-4 flex items-center justify-between px-4 py-3">
-            <span className="font-mono text-xs font-black uppercase text-[#aab7c8]">
+            <span className="font-mono text-xs font-black uppercase text-muted">
               Build Sheet
             </span>
-            <span className="font-mono text-sm font-black uppercase text-[#e9bd6a]">
+            <span className="font-mono text-sm font-black uppercase text-warning">
               Live
             </span>
           </div>
@@ -55,16 +55,16 @@ export default function Home() {
                 key={attribute}
                 className="stat-card min-h-24 p-4"
               >
-                <p className="font-mono text-xs font-black uppercase text-[#36c4b4]">
+                <p className="font-mono text-xs font-black uppercase text-accent">
                   Slot {index + 1}
                 </p>
-                <p className="mt-3 text-lg font-black text-[#f7f2e8]">
+                <p className="mt-3 text-lg font-black text-foreground">
                   {attribute}
                 </p>
               </div>
             ))}
           </div>
-          <div className="stat-strip mt-4 px-4 py-3 text-sm font-black uppercase tracking-[0.12em] text-[#f7f2e8]">
+          <div className="stat-strip mt-4 px-4 py-3 text-sm font-black uppercase tracking-[0.12em] text-foreground">
             Team + Era + Player Version
           </div>
         </div>
