@@ -49,7 +49,7 @@ export function FinalResults({
             aria-label="Final build"
             className="game-panel p-5"
           >
-            <h2 className="text-xl font-black text-[#f7f2e8]">Final Build</h2>
+            <h2 className="text-xl font-black text-foreground">Final Build</h2>
             <div className="mt-5 grid gap-3">
               {completedCategories.map((completedCategory) => (
                 <ResultCategoryRow
@@ -64,16 +64,16 @@ export function FinalResults({
             aria-label="Final score and rank"
             className="game-panel-soft p-5"
           >
-            <h2 className="text-xl font-black text-[#f7f2e8]">Scorecard</h2>
+            <h2 className="text-xl font-black text-foreground">Scorecard</h2>
             <dl className="mt-5 grid gap-3">
               <div
                 data-testid="final-score"
                 className="stat-strip p-4"
               >
-                <dt className="text-xs font-bold uppercase tracking-[0.14em] text-[#36c4b4]">
+                <dt className="text-xs font-bold uppercase tracking-[0.14em] text-accent">
                   Final Score
                 </dt>
-                <dd className="mt-2 font-mono text-5xl font-black text-[#e9bd6a]">
+                <dd className="mt-2 font-mono text-5xl font-black text-warning">
                   {finalScore}
                 </dd>
               </div>
@@ -81,10 +81,10 @@ export function FinalResults({
                 data-testid="final-rank"
                 className="stat-strip p-4"
               >
-                <dt className="text-xs font-bold uppercase tracking-[0.14em] text-[#36c4b4]">
+                <dt className="text-xs font-bold uppercase tracking-[0.14em] text-accent">
                   Final Rank
                 </dt>
-                <dd className="mt-2 text-3xl font-black text-[#f7f2e8]">
+                <dd className="mt-2 text-3xl font-black text-foreground">
                   {finalRank}
                 </dd>
               </div>
@@ -117,22 +117,22 @@ function ResultCategoryRow({
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-[#e9bd6a]">
+          <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-warning">
             {categoryLabels[completedCategory.category]}
           </h3>
           <p
             data-testid="final-result-player"
-            className="mt-2 text-lg font-black text-[#f7f2e8]"
+            className="mt-2 text-lg font-black text-foreground"
           >
             {completedCategory.playerName}
           </p>
           <p
             data-testid="final-result-version"
-            className="mt-1 text-sm font-bold text-[#d7dfeb]"
+            className="mt-1 text-sm font-bold text-muted"
           >
             {completedCategory.playerVersionLabel}
           </p>
-          <p className="mt-1 text-xs font-bold text-[#aab7c8]">
+          <p className="mt-1 text-xs font-bold text-muted">
             {completedCategory.teamName} / {completedCategory.eraLabel}
           </p>
         </div>
@@ -140,7 +140,7 @@ function ResultCategoryRow({
           data-testid="final-result-rating"
           className="stat-chip min-w-20 px-3 py-2 text-center"
         >
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#36c4b4]">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-accent">
             Rating
           </p>
           <p className="text-3xl font-black">{completedCategory.rating}</p>

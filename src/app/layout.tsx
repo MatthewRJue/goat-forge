@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ThemeToggle } from "@/components/theme-toggle";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,6 +18,15 @@ export const metadata: Metadata = {
   description: "Build an all-time basketball player across five attributes.",
 };
 
+const themeInitScript = `
+  try {
+    const theme = window.localStorage.getItem("goat-builder-theme");
+    if (theme === "light" || theme === "dark") {
+      document.documentElement.dataset.theme = theme;
+    }
+  } catch {}
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,9 +35,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <ThemeToggle />
+        {children}
+      </body>
     </html>
   );
 }

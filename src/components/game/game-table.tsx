@@ -241,7 +241,7 @@ export function GameTable() {
             <h1 className="screen-title text-4xl leading-tight sm:text-5xl">
               Round {gameState.currentRound || 1} of {gameState.totalRounds}
             </h1>
-            <p className="mt-3 font-mono text-sm font-black text-[#e9bd6a]">
+            <p className="mt-3 font-mono text-sm font-black text-warning">
               {gameState.status}
             </p>
           </div>
@@ -335,7 +335,7 @@ function PlayerPoolPanel({
       {playerPoolState.status === "loading" ? (
         <div
           data-testid="player-pool-loading"
-          className="stat-strip p-4 text-sm font-bold text-[#d7dfeb]"
+          className="stat-strip p-4 text-sm font-bold text-muted"
         >
           Loading player pool
         </div>
@@ -346,7 +346,7 @@ function PlayerPoolPanel({
           role="alert"
           className="alert-panel p-4"
         >
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#ffb4b7]">
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-danger">
             Player pool unavailable
           </p>
           <p className="mt-2 text-base font-bold">{playerPoolState.message}</p>
@@ -359,7 +359,7 @@ function PlayerPoolPanel({
           role="alert"
           className="alert-panel p-4"
         >
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#ffb4b7]">
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-danger">
             No eligible players found
           </p>
           <button
@@ -416,7 +416,7 @@ function PlayerCard({
           <h3 className="truncate text-base font-black sm:text-lg">
             {player.name}
           </h3>
-          <p className="mt-1 truncate text-xs font-bold text-[#aab7c8] sm:text-sm">
+          <p className="mt-1 truncate text-xs font-bold text-muted sm:text-sm">
             {player.versionLabel}
           </p>
         </div>
@@ -426,7 +426,7 @@ function PlayerCard({
               key={category}
               className="stat-chip min-w-0 px-1 py-2 text-center sm:w-14"
             >
-              <p className="text-[0.55rem] font-bold uppercase leading-none text-[#36c4b4] sm:text-[0.65rem]">
+              <p className="text-[0.55rem] font-bold uppercase leading-none text-accent sm:text-[0.65rem]">
                 <span className="sr-only">{categoryLabels[category]}</span>
                 <span aria-hidden="true">{categoryShortLabels[category]}</span>
               </p>
@@ -469,7 +469,7 @@ function SpinPanel({
           role="alert"
           className="alert-panel p-4"
         >
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#ffb4b7]">
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-danger">
             Spin unavailable
           </p>
           <p className="mt-2 text-base font-bold">{gameState.spinError.message}</p>
@@ -538,7 +538,7 @@ function RespinButton({
       }}
     >
       <span>{label}</span>
-      <span className="text-[0.65rem] uppercase text-[#e9bd6a] group-disabled:text-[#7f8ea4]">
+      <span className="text-[0.65rem] uppercase text-warning group-disabled:text-muted">
         {usedRound === null ? "Available" : `Used R${usedRound}`}
       </span>
     </button>
@@ -581,7 +581,7 @@ function ProgressPanel({
       aria-label="Build progress"
       className="game-panel-soft p-5"
     >
-      <h2 className="text-xl font-black text-[#f7f2e8]">Build Progress</h2>
+      <h2 className="text-xl font-black text-foreground">Build Progress</h2>
       <div className="mt-5 space-y-3">
         {MVP_CATEGORIES.map((category) => {
           const completedCategory = gameState.completedCategories.find(
@@ -624,22 +624,22 @@ function ProgressPanel({
             >
               <span className="flex items-start justify-between gap-3">
                 <span className="min-w-0">
-                  <span className="block text-xs font-bold uppercase tracking-[0.14em] text-[#e9bd6a]">
+                  <span className="block text-xs font-bold uppercase tracking-[0.14em] text-warning">
                     {categoryLabels[category]}
                   </span>
-                  <span className="mt-2 block truncate text-base font-black text-[#f7f2e8]">
+                  <span className="mt-2 block truncate text-base font-black text-foreground">
                     {completedCategory?.playerName ??
                       selectedPlayer?.name ??
                       "Empty"}
                   </span>
-                  <span className="mt-1 block truncate text-xs font-bold text-[#aab7c8]">
+                  <span className="mt-1 block truncate text-xs font-bold text-muted">
                     {completedCategory
                       ? `${completedCategory.teamName} / ${completedCategory.eraLabel}`
                       : statusLabel}
                   </span>
                 </span>
                 <span className="stat-chip min-w-16 px-3 py-2 text-center">
-                  <span className="block text-xs font-bold uppercase tracking-[0.14em] text-[#36c4b4]">
+                  <span className="block text-xs font-bold uppercase tracking-[0.14em] text-accent">
                     Rating
                   </span>
                   <span className="block text-2xl font-black">
