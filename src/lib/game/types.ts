@@ -28,6 +28,7 @@ export type PlayerOption = {
   playerVersionId: string;
   playerId: string;
   name: string;
+  position: string;
   versionLabel: string;
   teamId: string;
   eraId: string;

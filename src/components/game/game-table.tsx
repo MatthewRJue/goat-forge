@@ -1,13 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 
 import { getEras, getPlayerPool, getTeams } from "@/data/game-data";
 import { gameReducer } from "@/lib/game/game-reducer";
 import { MVP_CATEGORIES, createStartedGameState } from "@/lib/game/game-state";
 import {
   buildEligiblePlayerOptions,
+  filterAndSortPlayerOptions,
   getPlayerOptionRating,
+  getPlayerPoolPositions,
+  type PlayerPoolSortKey,
 } from "@/lib/game/player-pool";
 import type { AttributeCategory, GameState, PlayerOption } from "@/lib/game/types";
 import { FinalResults } from "@/components/results/final-results";
@@ -36,6 +39,23 @@ const gameStatusLabels: Record<GameState["status"], string> = {
   roundComplete: "Round locked",
   gameComplete: "Build complete",
 };
+
+const playerPoolSortLabels: Record<PlayerPoolSortKey, string> = {
+  name: "Name A-Z",
+  athleticism: "Athleticism",
+  shooting: "Shooting",
+  finishing: "Finishing",
+  playmaking: "Playmaking",
+  defense: "Defense",
+};
+
+const defaultPlayerPoolFilters = {
+  searchQuery: "",
+  position: "",
+  sortKey: "name" as PlayerPoolSortKey,
+};
+
+type PlayerPoolFilters = typeof defaultPlayerPoolFilters;
 
 type PlayerPoolState =
   | {
@@ -87,33 +107,43 @@ export function GameTable() {
   const [playerPoolState, setPlayerPoolState] = useState<PlayerPoolState>({
     status: "idle",
   });
+  const [playerPoolFilters, setPlayerPoolFilters] = useState<PlayerPoolFilters>(
+    defaultPlayerPoolFilters,
+  );
+
+  const clearPlayerPoolFilters = useCallback(() => {
+    setPlayerPoolFilters(defaultPlayerPoolFilters);
+  }, []);
 
   const startGame = useCallback(async () => {
     setPlayerPoolState({ status: "idle" });
+    clearPlayerPoolFilters();
     dispatch({ type: "START_GAME" });
-  }, []);
+  }, [clearPlayerPoolFilters]);
 
   const handleTeamRespin = useCallback(async () => {
     const teams = await getTeams();
 
     setPlayerPoolState({ status: "loading" });
+    clearPlayerPoolFilters();
     dispatch({
       type: "USE_TEAM_RESPIN",
       teams,
       random: gameRandom,
     });
-  }, []);
+  }, [clearPlayerPoolFilters]);
 
   const handleEraRespin = useCallback(async () => {
     const eras = await getEras();
 
     setPlayerPoolState({ status: "loading" });
+    clearPlayerPoolFilters();
     dispatch({
       type: "USE_ERA_RESPIN",
       eras,
       random: gameRandom,
     });
-  }, []);
+  }, [clearPlayerPoolFilters]);
 
   const handleCategorySelect = useCallback((category: AttributeCategory) => {
     dispatch({
@@ -121,10 +151,12 @@ export function GameTable() {
       category,
     });
     setPlayerPoolState({ status: "idle" });
-  }, []);
+    clearPlayerPoolFilters();
+  }, [clearPlayerPoolFilters]);
 
   const handleEmptyPoolSpinAgain = useCallback(async () => {
     setPlayerPoolState({ status: "loading" });
+    clearPlayerPoolFilters();
 
     const [teams, eras] = await Promise.all([getTeams(), getEras()]);
 
@@ -134,7 +166,7 @@ export function GameTable() {
       eras,
       random: gameRandom,
     });
-  }, []);
+  }, [clearPlayerPoolFilters]);
 
   const handlePlayerSelect = useCallback((player: PlayerOption) => {
     dispatch({
@@ -268,7 +300,10 @@ export function GameTable() {
         <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">
           <GameStatePanel
             gameState={gameState}
+            playerPoolFilters={playerPoolFilters}
             onEmptyPoolSpinAgain={handleEmptyPoolSpinAgain}
+            onPlayerPoolFiltersChange={setPlayerPoolFilters}
+            onPlayerPoolFiltersClear={clearPlayerPoolFilters}
             onEraRespin={handleEraRespin}
             onPlayerSelect={handlePlayerSelect}
             onTeamRespin={handleTeamRespin}
@@ -286,15 +321,21 @@ export function GameTable() {
 
 function GameStatePanel({
   gameState,
+  playerPoolFilters,
   onEmptyPoolSpinAgain,
   onEraRespin,
+  onPlayerPoolFiltersChange,
+  onPlayerPoolFiltersClear,
   onPlayerSelect,
   onTeamRespin,
   playerPoolState,
 }: {
   gameState: GameState;
+  playerPoolFilters: PlayerPoolFilters;
   onEmptyPoolSpinAgain: () => Promise<void>;
   onEraRespin: () => Promise<void>;
+  onPlayerPoolFiltersChange: (filters: PlayerPoolFilters) => void;
+  onPlayerPoolFiltersClear: () => void;
   onPlayerSelect: (player: PlayerOption) => void;
   onTeamRespin: () => Promise<void>;
   playerPoolState: PlayerPoolState;
@@ -319,6 +360,9 @@ function GameStatePanel({
           selectedPlayerVersionId={
             gameState.selectedPlayerVersion?.playerVersionId ?? null
           }
+          filters={playerPoolFilters}
+          onClearFilters={onPlayerPoolFiltersClear}
+          onFiltersChange={onPlayerPoolFiltersChange}
         />
       ) : null}
     </section>
@@ -326,16 +370,41 @@ function GameStatePanel({
 }
 
 function PlayerPoolPanel({
+  filters,
+  onClearFilters,
+  onFiltersChange,
   onEmptyPoolSpinAgain,
   onPlayerSelect,
   playerPoolState,
   selectedPlayerVersionId,
 }: {
+  filters: PlayerPoolFilters;
+  onClearFilters: () => void;
+  onFiltersChange: (filters: PlayerPoolFilters) => void;
   onEmptyPoolSpinAgain: () => Promise<void>;
   onPlayerSelect: (player: PlayerOption) => void;
   playerPoolState: PlayerPoolState;
   selectedPlayerVersionId: string | null;
 }) {
+  const positions = useMemo(
+    () =>
+      playerPoolState.status === "ready"
+        ? getPlayerPoolPositions(playerPoolState.players)
+        : [],
+    [playerPoolState],
+  );
+  const filteredPlayers = useMemo(
+    () =>
+      playerPoolState.status === "ready"
+        ? filterAndSortPlayerOptions({
+            players: playerPoolState.players,
+            searchQuery: filters.searchQuery,
+            position: filters.position,
+            sortKey: filters.sortKey,
+          })
+        : [],
+    [filters, playerPoolState],
+  );
   return (
     <div
       data-testid="player-pool-panel"
@@ -384,17 +453,152 @@ function PlayerPoolPanel({
       ) : null}
 
       {playerPoolState.status === "ready" && playerPoolState.players.length > 0 ? (
-        <div className="max-h-[28rem] space-y-3 overflow-y-auto pr-1">
-          {playerPoolState.players.map((player) => (
-            <PlayerCard
-              key={player.playerVersionId}
-              onSelect={onPlayerSelect}
-              player={player}
-              selected={player.playerVersionId === selectedPlayerVersionId}
-            />
-          ))}
+        <div className="space-y-3">
+          <PlayerPoolControls
+            filters={filters}
+            onClearFilters={onClearFilters}
+            onFiltersChange={onFiltersChange}
+            positions={positions}
+          />
+
+          {filteredPlayers.length === 0 ? (
+            <div
+              data-testid="player-pool-filtered-empty"
+              role="status"
+              className="stat-strip p-4"
+            >
+              <p className="text-sm font-black text-foreground">
+                No players match the current filters.
+              </p>
+              <p className="mt-1 text-sm font-bold text-muted">
+                Clear filters or adjust the search and position controls.
+              </p>
+              <button
+                type="button"
+                className="outline-button mt-4 inline-flex min-h-11 items-center justify-center px-4 text-sm"
+                onClick={onClearFilters}
+              >
+                Clear Filters
+              </button>
+            </div>
+          ) : null}
+
+          <div className="max-h-[28rem] space-y-3 overflow-y-auto pr-1">
+            {filteredPlayers.map((player) => (
+              <PlayerCard
+                key={player.playerVersionId}
+                onSelect={onPlayerSelect}
+                player={player}
+                selected={player.playerVersionId === selectedPlayerVersionId}
+              />
+            ))}
+          </div>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function PlayerPoolControls({
+  filters,
+  onClearFilters,
+  onFiltersChange,
+  positions,
+}: {
+  filters: PlayerPoolFilters;
+  onClearFilters: () => void;
+  onFiltersChange: (filters: PlayerPoolFilters) => void;
+  positions: string[];
+}) {
+  const hasActiveFilters =
+    filters.searchQuery.trim().length > 0 ||
+    filters.position !== "" ||
+    filters.sortKey !== "name";
+
+  return (
+    <div
+      aria-label="Player list controls"
+      className="grid gap-2 sm:grid-cols-[1.2fr_0.8fr_1fr_auto] sm:items-end"
+    >
+      <label className="space-y-1">
+        <span className="text-xs font-black uppercase tracking-[0.14em] text-muted">
+          Search
+        </span>
+        <input
+          data-testid="player-search-input"
+          className="control-field min-h-11 w-full px-3 text-sm font-bold"
+          type="search"
+          value={filters.searchQuery}
+          onChange={(event) => {
+            onFiltersChange({
+              ...filters,
+              searchQuery: event.target.value,
+            });
+          }}
+        />
+      </label>
+
+      <label className="space-y-1">
+        <span className="text-xs font-black uppercase tracking-[0.14em] text-muted">
+          Position
+        </span>
+        <select
+          data-testid="player-position-filter"
+          className="control-field min-h-11 w-full px-3 text-sm font-bold"
+          value={filters.position}
+          onChange={(event) => {
+            onFiltersChange({
+              ...filters,
+              position: event.target.value,
+            });
+          }}
+        >
+          <option value="">All</option>
+          {positions.map((position) => (
+            <option
+              key={position}
+              value={position}
+            >
+              {position}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="space-y-1">
+        <span className="text-xs font-black uppercase tracking-[0.14em] text-muted">
+          Sort
+        </span>
+        <select
+          data-testid="player-sort-select"
+          className="control-field min-h-11 w-full px-3 text-sm font-bold"
+          value={filters.sortKey}
+          onChange={(event) => {
+            onFiltersChange({
+              ...filters,
+              sortKey: event.target.value as PlayerPoolSortKey,
+            });
+          }}
+        >
+          {Object.entries(playerPoolSortLabels).map(([sortKey, label]) => (
+            <option
+              key={sortKey}
+              value={sortKey}
+            >
+              {label}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <button
+        type="button"
+        className="outline-button inline-flex min-h-11 items-center justify-center px-4 text-sm"
+        disabled={!hasActiveFilters}
+        onClick={onClearFilters}
+      >
+        Clear
+      </button>
     </div>
   );
 }
@@ -427,6 +631,9 @@ function PlayerCard({
           </h3>
           <p className="mt-1 truncate text-xs font-bold text-muted sm:text-sm">
             {player.versionLabel}
+          </p>
+          <p className="mt-2 inline-flex min-h-7 items-center rounded-md border border-accent/25 bg-accent/10 px-2 text-xs font-black text-accent">
+            {player.position}
           </p>
         </div>
         <div className="grid w-full grid-cols-5 gap-1 sm:w-auto sm:shrink-0 sm:gap-2">

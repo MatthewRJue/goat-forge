@@ -9,22 +9,22 @@ test("selecting a player reveals available attribute categories", async ({
   await page.goto("/game");
 
   await expect(page.getByTestId("player-pool-panel")).toBeVisible();
-  await expect(page.getByTestId("player-card").first()).toBeVisible();
-  await expect(page.getByTestId("player-card").first()).toContainText(
-    "Magic Johnson",
-  );
-  await expect(page.getByTestId("player-card").first()).toContainText(
-    "Shooting",
-  );
-  await expect(page.getByTestId("player-card").first()).toContainText("86");
+  const magicCard = page
+    .getByTestId("player-card")
+    .filter({ hasText: "Magic Johnson" });
+  await expect(magicCard).toBeVisible();
+  await expect(magicCard).toContainText("Shooting");
+  await expect(magicCard).toContainText("86");
   await expect(
     page.getByRole("heading", { name: "Attribute Choice" }),
   ).toBeHidden();
   await expect(page.getByTestId("available-category")).toHaveCount(0);
   await expect(page.getByTestId("locked-category")).toHaveCount(5);
 
-  const firstPlayerCard = page.getByTestId("player-card").first();
-  const secondPlayerCard = page.getByTestId("player-card").nth(1);
+  const firstPlayerCard = magicCard;
+  const secondPlayerCard = page
+    .getByTestId("player-card")
+    .filter({ hasText: "Kareem Abdul-Jabbar" });
 
   await firstPlayerCard.click();
 
@@ -55,7 +55,10 @@ test("selecting an attribute completes the selected player category", async ({
 
   await expect(page.getByTestId("player-pool-panel")).toBeVisible();
 
-  await page.getByTestId("player-card").first().click();
+  await page
+    .getByTestId("player-card")
+    .filter({ hasText: "Magic Johnson" })
+    .click();
   await page
     .getByLabel("Build progress")
     .getByRole("button", { name: /Shooting/ })

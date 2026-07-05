@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildEligiblePlayerOptions,
+  filterAndSortPlayerOptions,
   getPlayerOptionRating,
+  getPlayerPoolPositions,
 } from "@/lib/game/player-pool";
+import type { PlayerOption } from "@/lib/game/types";
 import type { PlayerPoolEntry } from "@/types/game-data";
 
 const playerPool: PlayerPoolEntry[] = [
@@ -63,6 +66,60 @@ const playerPool: PlayerPoolEntry[] = [
   },
 ];
 
+const playerOptions: PlayerOption[] = [
+  {
+    playerVersionId: "version-3",
+    playerId: "player-3",
+    name: "Beta Guard",
+    position: "PG",
+    versionLabel: "1990s Beta Guard",
+    teamId: "team-1",
+    eraId: "era-1",
+    imageUrl: null,
+    attributes: {
+      athleticism: 91,
+      shooting: 88,
+      finishing: 82,
+      playmaking: 96,
+      defense: 78,
+    },
+  },
+  {
+    playerVersionId: "version-4",
+    playerId: "player-4",
+    name: "Alpha Wing",
+    position: "SF",
+    versionLabel: "1990s Alpha Wing",
+    teamId: "team-1",
+    eraId: "era-1",
+    imageUrl: null,
+    attributes: {
+      athleticism: 97,
+      shooting: 81,
+      finishing: 95,
+      playmaking: 84,
+      defense: 93,
+    },
+  },
+  {
+    playerVersionId: "version-5",
+    playerId: "player-5",
+    name: "Gamma Center",
+    position: "C",
+    versionLabel: "1990s Gamma Center",
+    teamId: "team-1",
+    eraId: "era-1",
+    imageUrl: null,
+    attributes: {
+      athleticism: 83,
+      shooting: 74,
+      finishing: 98,
+      playmaking: 76,
+      defense: 96,
+    },
+  },
+];
+
 describe("player pool game helpers", () => {
   it("maps pool entries into player options and excludes used player versions", () => {
     const options = buildEligiblePlayerOptions({
@@ -75,6 +132,7 @@ describe("player pool game helpers", () => {
       playerVersionId: "version-2",
       playerId: "player-1",
       name: "Shared Player",
+      position: "F",
       versionLabel: "2000s Shared Player",
       teamId: "team-2",
       eraId: "era-2",
@@ -99,5 +157,68 @@ describe("player pool game helpers", () => {
 
     expect(getPlayerOptionRating(option, "shooting")).toBe(80);
     expect(getPlayerOptionRating(option, "defense")).toBe(88);
+  });
+
+  it("filters player options by visible player name", () => {
+    const options = filterAndSortPlayerOptions({
+      players: playerOptions,
+      searchQuery: "wing",
+    });
+
+    expect(options.map((option) => option.name)).toEqual(["Alpha Wing"]);
+  });
+
+  it("filters player options by position", () => {
+    const options = filterAndSortPlayerOptions({
+      players: playerOptions,
+      position: "SF",
+    });
+
+    expect(options.map((option) => option.name)).toEqual(["Alpha Wing"]);
+  });
+
+  it("sorts player options alphabetically by name by default", () => {
+    const options = filterAndSortPlayerOptions({
+      players: playerOptions,
+    });
+
+    expect(options.map((option) => option.name)).toEqual([
+      "Alpha Wing",
+      "Beta Guard",
+      "Gamma Center",
+    ]);
+  });
+
+  it.each([
+    ["athleticism", ["Alpha Wing", "Beta Guard", "Gamma Center"]],
+    ["shooting", ["Beta Guard", "Alpha Wing", "Gamma Center"]],
+    ["finishing", ["Gamma Center", "Alpha Wing", "Beta Guard"]],
+    ["playmaking", ["Beta Guard", "Alpha Wing", "Gamma Center"]],
+    ["defense", ["Gamma Center", "Alpha Wing", "Beta Guard"]],
+  ] as const)("sorts player options by %s rating descending", (sortKey, names) => {
+    const options = filterAndSortPlayerOptions({
+      players: playerOptions,
+      sortKey,
+    });
+
+    expect(options.map((option) => option.name)).toEqual(names);
+  });
+
+  it("filters and sorts after used player versions have already been excluded", () => {
+    const eligiblePlayers = buildEligiblePlayerOptions({
+      pool: playerPool,
+      usedPlayerVersionIds: ["version-1"],
+    });
+    const options = filterAndSortPlayerOptions({
+      players: eligiblePlayers,
+      searchQuery: "shared",
+      sortKey: "shooting",
+    });
+
+    expect(options.map((option) => option.playerVersionId)).toEqual(["version-2"]);
+  });
+
+  it("returns sorted positions for player pool controls", () => {
+    expect(getPlayerPoolPositions(playerOptions)).toEqual(["C", "PG", "SF"]);
   });
 });

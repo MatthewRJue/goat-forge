@@ -289,7 +289,8 @@ a {
 .primary-action:focus-visible,
 .outline-button:focus-visible,
 .stat-card:focus-visible,
-.player-option:focus-visible {
+.player-option:focus-visible,
+.control-field:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 3px;
   box-shadow: 0 0 0 5px rgb(var(--accent-rgb) / 0.16);
@@ -317,6 +318,16 @@ a {
   color: var(--disabled-foreground);
   cursor: not-allowed;
   filter: saturate(0.72);
+}
+
+.control-field {
+  border: 1px solid rgb(var(--border-rgb) / 0.82);
+  background: rgb(var(--surface-strong-rgb) / 0.82);
+  color: var(--foreground);
+}
+
+.control-field::placeholder {
+  color: var(--disabled-foreground);
 }
 
 .stat-card {
