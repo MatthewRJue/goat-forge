@@ -29,6 +29,7 @@ const player: PlayerOption = {
   playerVersionId: "version-1",
   playerId: "player-1",
   name: "Example Player",
+  position: "SF",
   versionLabel: "1980s Example Player",
   teamId: "team-1",
   eraId: "era-1",
