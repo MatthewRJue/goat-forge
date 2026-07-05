@@ -125,6 +125,11 @@ test("respins remain available after player selection until an attribute is appl
   await expect(page.getByTestId("player-pool-panel")).toBeVisible();
   await expect(page.getByTestId("available-category")).toHaveCount(0);
   await expect(page.getByTestId("locked-category")).toHaveCount(5);
+
+  await page.getByTestId("era-respin-button").click();
+
+  await expect(page.getByTestId("era-respin-button")).toBeDisabled();
+  await expect(page.getByTestId("player-pool-panel")).toBeVisible();
   await expect(page.getByTestId("player-card").first()).toHaveAttribute(
     "aria-pressed",
     "false",

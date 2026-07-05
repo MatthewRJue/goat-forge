@@ -246,6 +246,8 @@ Era = 2010s
 
 Team respin becomes unavailable for the remainder of the game.
 
+Team respin must not return the same team that was active when the user chose to respin. If no alternate team is available in the loaded team data, the respin should not be consumed.
+
 ---
 
 ## Era Respin
@@ -269,6 +271,8 @@ Era = 1990s
 ```
 
 Era respin becomes unavailable for the remainder of the game.
+
+Era respin must not return the same era that was active when the user chose to respin. If no alternate era is available in the loaded era data, the respin should not be consumed.
 
 ---
 

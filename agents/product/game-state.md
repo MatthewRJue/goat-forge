@@ -361,7 +361,7 @@ status = selectingPlayer or selectingCategory
 Expected behavior:
 
 ```text
-Generate new team
+Generate new team that is different from the current team
 Keep current era unchanged
 Clear selectedPlayerVersion
 Clear selectedCategory
@@ -369,6 +369,8 @@ Set status to selectingPlayer
 Set teamRespinAvailable to false
 Set teamRespinUsedRound to currentRound
 ```
+
+If no alternate team is available, leave the current team and respin availability unchanged and show an error.
 
 ---
 
@@ -386,7 +388,7 @@ status = selectingPlayer or selectingCategory
 Expected behavior:
 
 ```text
-Generate new era
+Generate new era that is different from the current era
 Keep current team unchanged
 Clear selectedPlayerVersion
 Clear selectedCategory
@@ -394,6 +396,8 @@ Set status to selectingPlayer
 Set eraRespinAvailable to false
 Set eraRespinUsedRound to currentRound
 ```
+
+If no alternate era is available, leave the current era and respin availability unchanged and show an error.
 
 ---
 
@@ -538,11 +542,11 @@ The user should only be able to select one player version once per game.
 
 # Important Edge Cases
 
-## Respin Produces Same Result
+## Respin Has No Alternate Result
 
-If a respin produces the same team or era, this is allowed for MVP.
+Team and era respins should never return the same value that was active when the user chose to respin.
 
-Future versions may prevent repeated respin results.
+If the loaded data has no alternate team or era available, show an error and do not consume the respin.
 
 ---
 

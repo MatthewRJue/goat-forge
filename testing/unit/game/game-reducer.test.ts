@@ -212,6 +212,36 @@ describe("game reducer", () => {
     expect(state.status).toBe("selectingPlayer");
   });
 
+  it("prevents a team respin from returning the current team", () => {
+    const spunState = createSelectingPlayerState();
+
+    const state = gameReducer(spunState, {
+      type: "USE_TEAM_RESPIN",
+      teams,
+      random: sequenceRandom(0),
+    });
+
+    expect(state.currentTeam).toEqual(teams[1]);
+    expect(state.currentTeam).not.toEqual(spunState.currentTeam);
+    expect(state.respins.teamRespinAvailable).toBe(false);
+    expect(state.respins.teamRespinUsedRound).toBe(1);
+  });
+
+  it("does not consume a team respin when no alternate team is available", () => {
+    const spunState = createSelectingPlayerState();
+
+    const state = gameReducer(spunState, {
+      type: "USE_TEAM_RESPIN",
+      teams: [spunState.currentTeam as TeamOption],
+      random: sequenceRandom(0),
+    });
+
+    expect(state.currentTeam).toEqual(spunState.currentTeam);
+    expect(state.respins.teamRespinAvailable).toBe(true);
+    expect(state.respins.teamRespinUsedRound).toBeNull();
+    expect(state.spinError?.message).toContain("No alternate teams");
+  });
+
   it("uses one era respin and keeps the current team unchanged", () => {
     const spunState = createSelectingPlayerState();
 
@@ -230,6 +260,36 @@ describe("game reducer", () => {
     expect(state.respins.eraRespinAvailable).toBe(false);
     expect(state.respins.eraRespinUsedRound).toBe(1);
     expect(state.status).toBe("selectingPlayer");
+  });
+
+  it("prevents an era respin from returning the current era", () => {
+    const spunState = createSelectingPlayerState();
+
+    const state = gameReducer(spunState, {
+      type: "USE_ERA_RESPIN",
+      eras,
+      random: sequenceRandom(0),
+    });
+
+    expect(state.currentEra).toEqual(eras[1]);
+    expect(state.currentEra).not.toEqual(spunState.currentEra);
+    expect(state.respins.eraRespinAvailable).toBe(false);
+    expect(state.respins.eraRespinUsedRound).toBe(1);
+  });
+
+  it("does not consume an era respin when no alternate era is available", () => {
+    const spunState = createSelectingPlayerState();
+
+    const state = gameReducer(spunState, {
+      type: "USE_ERA_RESPIN",
+      eras: [spunState.currentEra as EraOption],
+      random: sequenceRandom(0),
+    });
+
+    expect(state.currentEra).toEqual(spunState.currentEra);
+    expect(state.respins.eraRespinAvailable).toBe(true);
+    expect(state.respins.eraRespinUsedRound).toBeNull();
+    expect(state.spinError?.message).toContain("No alternate eras");
   });
 
   it("allows both respins during the same round", () => {
@@ -721,8 +781,8 @@ describe("game reducer", () => {
     expect(state.usedPlayerVersionIds).toEqual([]);
   });
 
-  it("allows a team respin to return the same team", () => {
-    const spunState = createSelectingPlayerState();
+  it("prevents a selecting-category team respin from returning the same team", () => {
+    const spunState = createSelectingCategoryState();
 
     const state = gameReducer(spunState, {
       type: "USE_TEAM_RESPIN",
@@ -730,7 +790,8 @@ describe("game reducer", () => {
       random: sequenceRandom(0),
     });
 
-    expect(state.currentTeam).toEqual(spunState.currentTeam);
+    expect(state.currentTeam).not.toEqual(spunState.currentTeam);
+    expect(state.selectedPlayerVersion).toBeNull();
     expect(state.respins.teamRespinAvailable).toBe(false);
     expect(state.respins.teamRespinUsedRound).toBe(1);
   });
