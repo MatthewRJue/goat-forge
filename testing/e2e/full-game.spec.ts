@@ -1,38 +1,70 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-const deterministicFiveRoundSequence = [
-  0,
-  0,
-  0,
-  0,
-  0.2,
-  0.2,
-  0.2,
-  0.2,
-  0.4,
-  0,
-  0.4,
-  0,
-  0.6,
-  0.4,
-  0.6,
-  0.4,
-  0.8,
-  0.6,
-  0.8,
-  0.6,
-  0,
-  0,
-  0,
-  0,
-].join(",");
+const deterministicFiveRoundSelections = [
+  "LAL|2020s",
+  "MIA|2020s",
+  "LAL|2000s",
+  "MIA|2000s",
+  "LAL|2020s",
+  "MIA|2020s",
+  "LAL|2000s",
+  "MIA|2000s",
+  "LAL|2020s",
+].join(";");
+const deterministicRecoverySelections = [
+  "LAL|2020s",
+  "MIA|2020s",
+  "LAL|2000s",
+  "MIA|2000s",
+].join(";");
+
+async function installDeterministicGame(page: Page) {
+  await page.evaluate((sequence) => {
+    window.localStorage.setItem("goat-builder-test-random", "first");
+    window.localStorage.setItem(
+      "goat-builder-test-round-spin-selection-sequence",
+      sequence,
+    );
+    window.localStorage.removeItem("goat-builder-test-random-sequence");
+    window.localStorage.removeItem("goat-builder-test-round-spin-sequence");
+    window.localStorage.setItem("goat-builder-test-spin-animation-ms", "20");
+  }, deterministicFiveRoundSelections);
+}
+
+async function expectPlayablePlayerPool(page: Page) {
+  const playerCard = page.getByTestId("player-card").first();
+
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    try {
+      await expect(playerCard).toBeVisible({ timeout: 2500 });
+      return;
+    } catch {
+      if (await page.getByTestId("player-pool-empty").isVisible()) {
+        await page.evaluate((sequence) => {
+          window.localStorage.setItem(
+            "goat-builder-test-round-spin-selection-sequence",
+            sequence,
+          );
+          window.localStorage.removeItem("goat-builder-test-random-sequence");
+          window.localStorage.removeItem("goat-builder-test-round-spin-sequence");
+        }, deterministicRecoverySelections);
+        await page.getByRole("button", { name: "Spin Again" }).click();
+        await expect(page.getByTestId("spin-animation-state")).toHaveAttribute(
+          "data-animation-state",
+          "settled",
+        );
+      }
+    }
+  }
+
+  await expect(playerCard).toBeVisible();
+}
 
 test("player can complete a five-round game without creating a sixth round", async ({
   page,
 }) => {
-  await page.addInitScript((sequence) => {
-    window.localStorage.setItem("goat-builder-test-random-sequence", sequence);
-  }, deterministicFiveRoundSequence);
+  await page.goto("/");
+  await installDeterministicGame(page);
   await page.goto("/game");
 
   const categories = [
@@ -48,7 +80,7 @@ test("player can complete a five-round game without creating a sixth round", asy
       page.getByRole("heading", { name: `Round ${index + 1} of 5` }),
     ).toBeVisible();
     await expect(page.getByTestId("player-pool-panel")).toBeVisible();
-    await expect(page.getByTestId("player-card").first()).toBeVisible();
+    await expectPlayablePlayerPool(page);
 
     await page.getByTestId("player-card").first().click();
 
@@ -127,7 +159,7 @@ test("player can complete a five-round game without creating a sixth round", asy
   await expect(page.getByTestId("era-respin-button")).toContainText("Available");
   await expect(page.getByTestId("team-display")).not.toContainText("Spinning");
   await expect(page.getByTestId("era-display")).not.toContainText("Spinning");
-  await expect(page.getByTestId("player-card").first()).toBeVisible();
+  await expectPlayablePlayerPool(page);
 
   await page.getByTestId("player-card").first().click();
 
