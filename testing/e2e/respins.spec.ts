@@ -13,11 +13,11 @@ test("respins are visible and can each be used once", async ({ page }) => {
 
   await expect(teamRespinButton).toBeVisible();
   await expect(teamRespinButton).toBeEnabled();
-  await expect(teamRespinButton).toContainText("Available");
+  await expect(teamRespinButton).toContainText("Respin");
 
   await expect(eraRespinButton).toBeVisible();
   await expect(eraRespinButton).toBeEnabled();
-  await expect(eraRespinButton).toContainText("Available");
+  await expect(eraRespinButton).toContainText("Respin");
 
   await teamRespinButton.click();
 

@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type ReactNode,
 } from "react";
 
 import { getEras, getPlayerPool, getTeams } from "@/data/game-data";
@@ -44,15 +45,6 @@ const categoryShortLabels: Record<AttributeCategory, string> = {
   finishing: "FIN",
   playmaking: "PLY",
   defense: "DEF",
-};
-
-const gameStatusLabels: Record<GameState["status"], string> = {
-  idle: "Ready",
-  spinning: "Spinning matchup",
-  selectingPlayer: "Choose a player",
-  selectingCategory: "Choose an attribute",
-  roundComplete: "Round locked",
-  gameComplete: "Build complete",
 };
 
 const playerPoolSortLabels: Record<PlayerPoolSortKey, string> = {
@@ -236,7 +228,7 @@ function randomFromValues(values: readonly number[]) {
   let index = 0;
 
   return () => {
-    const value = values[Math.min(index, values.length - 1)] ?? 0;
+    const value = values[index % values.length] ?? 0;
 
     index += 1;
 
@@ -717,15 +709,9 @@ export function GameTable() {
       <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-5xl flex-col justify-center gap-8">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="micro-label mb-4">
-              Active stat lab
-            </p>
             <h1 className="screen-title text-4xl leading-tight sm:text-5xl">
               Round {gameState.currentRound || 1} of {gameState.totalRounds}
             </h1>
-            <p className="state-pill mt-3">
-              {gameStatusLabels[gameState.status]}
-            </p>
           </div>
           <button
             className="outline-button inline-flex min-h-12 w-full items-center justify-center px-5 text-base sm:w-auto"
@@ -876,7 +862,7 @@ function PlayerPoolPanel({
   return (
     <div
       data-testid="player-pool-panel"
-      className="game-panel-soft mt-6 p-4"
+      className="game-panel-plain mt-5 pt-5"
     >
       {playerPoolState.status === "loading" ? (
         <div
@@ -933,17 +919,14 @@ function PlayerPoolPanel({
             <div
               data-testid="player-pool-filtered-empty"
               role="status"
-              className="stat-strip p-4"
+              className="stat-strip flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
             >
               <p className="text-sm font-black text-foreground">
-                No players match the current filters.
-              </p>
-              <p className="mt-1 text-sm font-bold text-muted">
-                Clear filters or adjust the search and position controls.
+                No players match these filters.
               </p>
               <button
                 type="button"
-                className="outline-button mt-4 inline-flex min-h-11 items-center justify-center px-4 text-sm"
+                className="outline-button inline-flex min-h-11 items-center justify-center px-4 text-sm"
                 onClick={onClearFilters}
               >
                 Clear Filters
@@ -1097,9 +1080,6 @@ function PlayerCard({
           <h3 className="truncate text-base font-black sm:text-lg">
             {player.name}
           </h3>
-          <p className="mt-1 truncate text-xs font-bold text-muted sm:text-sm">
-            {player.versionLabel}
-          </p>
           <p className="mt-2 inline-flex min-h-7 items-center rounded-md border border-accent/25 bg-accent/10 px-2 text-xs font-black text-accent">
             {player.position}
           </p>
@@ -1155,7 +1135,7 @@ function SpinPanel({
     : "grid gap-3 sm:grid-cols-2";
 
   return (
-    <div className="mt-6">
+    <div>
       <div
         aria-live="polite"
         className="sr-only"
@@ -1180,21 +1160,23 @@ function SpinPanel({
       ) : null}
 
       <div className={spinGridClass}>
-        <div className="space-y-2">
-          <RespinButton
-            disabled={teamRespinDisabled}
-            isAnimating={spinAnimationTarget === "team"}
-            label="Team Respin"
-            testId="team-respin-button"
-            usedRound={gameState.respins.teamRespinUsedRound}
-            onClick={onTeamRespin}
-          />
+        <div>
           <SpinCard
             isAnimating={
               spinAnimationTarget === "round" || spinAnimationTarget === "team"
             }
             testId="team-display"
             label="Team"
+            action={
+              <RespinButton
+                disabled={teamRespinDisabled}
+                isAnimating={spinAnimationTarget === "team"}
+                label="Team"
+                testId="team-respin-button"
+                usedRound={gameState.respins.teamRespinUsedRound}
+                onClick={onTeamRespin}
+              />
+            }
             value={
               gameState.currentTeam
                 ? `${gameState.currentTeam.name} (${gameState.currentTeam.abbreviation})`
@@ -1202,21 +1184,23 @@ function SpinPanel({
             }
           />
         </div>
-        <div className="space-y-2">
-          <RespinButton
-            disabled={eraRespinDisabled}
-            isAnimating={spinAnimationTarget === "era"}
-            label="Era Respin"
-            testId="era-respin-button"
-            usedRound={gameState.respins.eraRespinUsedRound}
-            onClick={onEraRespin}
-          />
+        <div>
           <SpinCard
             isAnimating={
               spinAnimationTarget === "round" || spinAnimationTarget === "era"
             }
             testId="era-display"
             label="Era"
+            action={
+              <RespinButton
+                disabled={eraRespinDisabled}
+                isAnimating={spinAnimationTarget === "era"}
+                label="Era"
+                testId="era-respin-button"
+                usedRound={gameState.respins.eraRespinUsedRound}
+                onClick={onEraRespin}
+              />
+            }
             value={
               gameState.currentEra ? gameState.currentEra.label : "Spinning..."
             }
@@ -1242,36 +1226,38 @@ function RespinButton({
   testId: string;
   usedRound: number | null;
 }) {
+  const buttonText = isAnimating
+    ? "Spinning"
+    : usedRound === null
+      ? "Respin"
+      : `Used R${usedRound}`;
+
   return (
     <button
       data-testid={testId}
-      className="outline-button group inline-flex min-h-11 w-full items-center justify-between gap-3 px-3 py-2 text-left text-xs"
+      className="outline-button inline-flex min-h-11 shrink-0 items-center justify-center px-3 text-xs"
       type="button"
       disabled={disabled}
       aria-busy={isAnimating}
+      aria-label={`${label} ${buttonText}`}
       onClick={() => {
         void onClick();
       }}
     >
-      <span>{label}</span>
-      <span className="text-[0.65rem] uppercase text-warning group-disabled:text-muted">
-        {isAnimating
-          ? "Generating"
-          : usedRound === null
-            ? "Available"
-            : `Used R${usedRound}`}
-      </span>
+      {buttonText}
     </button>
   );
 }
 
 function SpinCard({
   isAnimating,
+  action,
   label,
   testId,
   value,
 }: {
   isAnimating: boolean;
+  action?: ReactNode;
   label: string;
   testId: string;
   value: string;
@@ -1282,13 +1268,17 @@ function SpinCard({
       data-animation-state={isAnimating ? "generating" : "settled"}
       aria-label={label}
       aria-busy={isAnimating}
-      className={`spin-result-card stat-strip flex min-h-14 items-center px-4 py-3 ${
+      className={`spin-result-card stat-strip min-h-24 px-4 py-3 ${
         isAnimating ? "is-generating" : ""
       }`}
     >
-      <p className="min-w-0 break-words text-lg font-black sm:text-xl">
-        {value}
-      </p>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-muted">
+          {label}
+        </p>
+        {action}
+      </div>
+      <p className="min-w-0 break-words text-xl font-black sm:text-2xl">{value}</p>
     </div>
   );
 }
@@ -1433,7 +1423,7 @@ function ProgressPanel({
       className="game-panel-soft p-5"
     >
       <h2 className="text-xl font-black text-foreground">Build Progress</h2>
-      <div className="mt-5 space-y-3">
+      <div className="mt-4 space-y-3">
         {MVP_CATEGORIES.map((category) => {
           const completedCategory = gameState.completedCategories.find(
             (completed) => completed.category === category,
@@ -1447,12 +1437,12 @@ function ProgressPanel({
             completedCategory?.rating ??
             (selectedPlayer ? getPlayerOptionRating(selectedPlayer, category) : null);
           const statusLabel = completedCategory
-            ? "Locked"
+            ? `${completedCategory.teamName} / ${completedCategory.eraLabel}`
             : canApply
-              ? "Apply selected player"
+              ? selectedPlayer.name
               : selectedPlayer
-                ? "Unavailable"
-                : "Select a player";
+                ? "Locked"
+                : "Select player";
 
           return (
             <button
@@ -1483,15 +1473,13 @@ function ProgressPanel({
                     {categoryLabels[category]}
                   </span>
                   <span className="category-title mt-2 block truncate text-base font-black text-foreground">
-                    {completedCategory?.playerName ??
-                      selectedPlayer?.name ??
-                      "Empty"}
+                    {completedCategory?.playerName ?? statusLabel}
                   </span>
-                  <span className="category-detail mt-1 block truncate text-xs font-bold text-muted">
-                    {completedCategory
-                      ? `${completedCategory.teamName} / ${completedCategory.eraLabel}`
-                      : statusLabel}
-                  </span>
+                  {completedCategory ? (
+                    <span className="category-detail mt-1 block truncate text-xs font-bold text-muted">
+                      {statusLabel}
+                    </span>
+                  ) : null}
                 </span>
                 <span className="stat-chip min-w-16 px-3 py-2 text-center">
                   <span className="block text-xs font-bold uppercase tracking-[0.14em] text-accent">

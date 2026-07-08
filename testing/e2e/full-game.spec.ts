@@ -154,9 +154,9 @@ test("player can complete a five-round game without creating a sixth round", asy
     "Round history",
   );
   await expect(page.getByTestId("team-respin-button")).toBeEnabled();
-  await expect(page.getByTestId("team-respin-button")).toContainText("Available");
+  await expect(page.getByTestId("team-respin-button")).toContainText("Respin");
   await expect(page.getByTestId("era-respin-button")).toBeEnabled();
-  await expect(page.getByTestId("era-respin-button")).toContainText("Available");
+  await expect(page.getByTestId("era-respin-button")).toContainText("Respin");
   await expect(page.getByTestId("team-display")).not.toContainText("Spinning");
   await expect(page.getByTestId("era-display")).not.toContainText("Spinning");
   await expectPlayablePlayerPool(page);
