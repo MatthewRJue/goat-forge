@@ -35,10 +35,10 @@ export function FinalResults({
           >
             Build complete
           </p>
-          <h1 className="screen-title text-4xl leading-tight sm:text-5xl">
+          <h1 className="screen-title text-5xl sm:text-7xl">
             Final Results
           </h1>
-          <p className="body-copy mt-5 max-w-2xl text-lg leading-8">
+          <p className="body-copy mt-6 max-w-2xl text-lg leading-8">
             Your finished GOAT build is locked in. Every rating below came from
             the player version you chose for that category.
           </p>
@@ -49,7 +49,7 @@ export function FinalResults({
             aria-label="Final build"
             className="game-panel p-5"
           >
-            <h2 className="text-xl font-black text-foreground">Final Build</h2>
+            <h2 className="panel-title">Final Build</h2>
             <div className="mt-5 grid gap-3">
               {completedCategories.map((completedCategory) => (
                 <ResultCategoryRow
@@ -64,16 +64,16 @@ export function FinalResults({
             aria-label="Final score and rank"
             className="game-panel-soft p-5"
           >
-            <h2 className="text-xl font-black text-foreground">Scorecard</h2>
+            <h2 className="panel-title">Scorecard</h2>
             <dl className="mt-5 grid gap-3">
               <div
                 data-testid="final-score"
                 className="stat-strip p-4"
               >
-                <dt className="text-xs font-bold uppercase tracking-[0.14em] text-accent">
+                <dt className="font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em] text-muted">
                   Final Score
                 </dt>
-                <dd className="mt-2 font-mono text-5xl font-black text-warning">
+                <dd className="mt-2 font-mono text-6xl font-bold text-accent">
                   {finalScore}
                 </dd>
               </div>
@@ -81,10 +81,10 @@ export function FinalResults({
                 data-testid="final-rank"
                 className="stat-strip p-4"
               >
-                <dt className="text-xs font-bold uppercase tracking-[0.14em] text-accent">
+                <dt className="font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em] text-muted">
                   Final Rank
                 </dt>
-                <dd className="mt-2 text-3xl font-black text-foreground">
+                <dd className="screen-title mt-2 text-4xl">
                   {finalRank}
                 </dd>
               </div>
@@ -117,22 +117,22 @@ function ResultCategoryRow({
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="category-name text-xs font-bold uppercase tracking-[0.14em] text-warning">
+          <h3 className="category-name font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em] text-accent">
             {categoryLabels[completedCategory.category]}
           </h3>
           <p
             data-testid="final-result-player"
-            className="category-title mt-2 text-lg font-black text-foreground"
+            className="category-title mt-2 text-lg font-bold text-foreground"
           >
             {completedCategory.playerName}
           </p>
           <p
             data-testid="final-result-version"
-            className="category-detail mt-1 text-sm font-bold text-muted"
+            className="category-detail mt-1 text-sm font-medium text-muted"
           >
             {completedCategory.playerVersionLabel}
           </p>
-          <p className="category-detail mt-1 text-xs font-bold text-muted">
+          <p className="category-detail mt-1 text-xs font-medium text-muted">
             {completedCategory.teamName} / {completedCategory.eraLabel}
           </p>
         </div>
@@ -140,10 +140,12 @@ function ResultCategoryRow({
           data-testid="final-result-rating"
           className="stat-chip min-w-20 px-3 py-2 text-center"
         >
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-accent">
+          <p className="text-[0.6rem] font-bold uppercase tracking-[0.12em] text-muted">
             Rating
           </p>
-          <p className="text-3xl font-black">{completedCategory.rating}</p>
+          <p className="font-mono text-3xl font-bold">
+            {completedCategory.rating}
+          </p>
         </div>
       </div>
     </article>
