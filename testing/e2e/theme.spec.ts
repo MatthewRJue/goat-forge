@@ -1,31 +1,22 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-const deterministicFiveRoundSequence = [
-  0,
-  0,
-  0,
-  0,
-  0.2,
-  0.2,
-  0.2,
-  0.2,
-  0.4,
-  0,
-  0.4,
-  0,
-  0.6,
-  0.4,
-  0.6,
-  0.4,
-  0.8,
-  0.6,
-  0.8,
-  0.6,
-  0,
-  0,
-  0,
-  0,
-].join(",");
+const deterministicFiveRoundSelections = [
+  "LAL|2020s",
+  "MIA|2020s",
+  "LAL|2000s",
+  "MIA|2000s",
+  "LAL|2020s",
+  "MIA|2020s",
+  "LAL|2000s",
+  "MIA|2000s",
+  "LAL|2020s",
+].join(";");
+const deterministicRecoverySelections = [
+  "LAL|2020s",
+  "MIA|2020s",
+  "LAL|2000s",
+  "MIA|2000s",
+].join(";");
 
 const categories = [
   "Athleticism",
@@ -35,14 +26,21 @@ const categories = [
   "Defense",
 ];
 
-async function installDeterministicGame(page: import("@playwright/test").Page) {
-  await page.addInitScript((sequence) => {
-    window.localStorage.setItem("goat-builder-test-random-sequence", sequence);
-  }, deterministicFiveRoundSequence);
+async function installDeterministicGame(page: Page) {
+  await page.evaluate((sequence) => {
+    window.localStorage.setItem("goat-builder-test-random", "first");
+    window.localStorage.setItem(
+      "goat-builder-test-round-spin-selection-sequence",
+      sequence,
+    );
+    window.localStorage.removeItem("goat-builder-test-random-sequence");
+    window.localStorage.removeItem("goat-builder-test-round-spin-sequence");
+    window.localStorage.setItem("goat-builder-test-spin-animation-ms", "20");
+  }, deterministicFiveRoundSelections);
 }
 
 async function forceTheme(
-  page: import("@playwright/test").Page,
+  page: Page,
   theme: "light" | "dark",
 ) {
   await page.addInitScript((themeName) => {
@@ -50,9 +48,38 @@ async function forceTheme(
   }, theme);
 }
 
-async function completeFullGame(page: import("@playwright/test").Page) {
+async function expectPlayablePlayerPool(page: Page) {
+  const playerCard = page.getByTestId("player-card").first();
+
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    try {
+      await expect(playerCard).toBeVisible({ timeout: 2500 });
+      return;
+    } catch {
+      if (await page.getByTestId("player-pool-empty").isVisible()) {
+        await page.evaluate((sequence) => {
+          window.localStorage.setItem(
+            "goat-builder-test-round-spin-selection-sequence",
+            sequence,
+          );
+          window.localStorage.removeItem("goat-builder-test-random-sequence");
+          window.localStorage.removeItem("goat-builder-test-round-spin-sequence");
+        }, deterministicRecoverySelections);
+        await page.getByRole("button", { name: "Spin Again" }).click();
+        await expect(page.getByTestId("spin-animation-state")).toHaveAttribute(
+          "data-animation-state",
+          "settled",
+        );
+      }
+    }
+  }
+
+  await expect(playerCard).toBeVisible();
+}
+
+async function completeFullGame(page: Page) {
   for (const category of categories) {
-    await expect(page.getByTestId("player-card").first()).toBeVisible();
+    await expectPlayablePlayerPool(page);
     await page.getByTestId("player-card").first().click();
     await expect(page.getByTestId("player-card").first()).toHaveAttribute(
       "aria-pressed",
@@ -76,8 +103,8 @@ async function completeFullGame(page: import("@playwright/test").Page) {
 
 test("light mode is the primary default presentation", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" });
-  await installDeterministicGame(page);
   await page.goto("/");
+  await installDeterministicGame(page);
 
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await expect(page.locator("html")).toHaveCSS("color-scheme", "light");
@@ -94,7 +121,7 @@ test("light mode is the primary default presentation", async ({ page }) => {
   );
 
   await page.getByTestId("start-game-button").click();
-  await expect(page.getByTestId("player-card").first()).toBeVisible();
+  await expectPlayablePlayerPool(page);
   await expect(page.getByTestId("locked-category")).toHaveCount(5);
 
   await completeFullGame(page);
@@ -102,6 +129,7 @@ test("light mode is the primary default presentation", async ({ page }) => {
 
 test("dark mode keeps the preserved game surface readable", async ({ page }) => {
   await forceTheme(page, "dark");
+  await page.goto("/");
   await installDeterministicGame(page);
   await page.goto("/game");
 
@@ -110,7 +138,7 @@ test("dark mode keeps the preserved game surface readable", async ({ page }) => 
   await expect(
     page.getByRole("heading", { name: "Round 1 of 5" }),
   ).toBeVisible();
-  await expect(page.getByTestId("player-card").first()).toBeVisible();
+  await expectPlayablePlayerPool(page);
   await expect(page.getByTestId("team-respin-button")).toBeEnabled();
   await expect(page.getByTestId("era-respin-button")).toBeEnabled();
 

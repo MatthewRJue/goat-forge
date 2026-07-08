@@ -43,7 +43,7 @@ test("player pool controls search, filter, sort, clear, and preserve playability
 
   await expect(page.getByTestId("player-pool-filtered-empty")).toBeVisible();
   await expect(page.getByTestId("player-pool-filtered-empty")).toContainText(
-    "No players match the current filters.",
+    "No players match these filters.",
   );
   await expect(page.getByLabel("Build progress")).toBeVisible();
 
@@ -67,4 +67,3 @@ test("player pool controls search, filter, sort, clear, and preserve playability
     "Magic Johnson",
   );
 });
-

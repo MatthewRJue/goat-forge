@@ -1,10 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 
 import { getEras, getPlayerPool, getTeams } from "@/data/game-data";
 import { gameReducer } from "@/lib/game/game-reducer";
 import { MVP_CATEGORIES, createStartedGameState } from "@/lib/game/game-state";
+import { selectRandomItem } from "@/lib/game/random";
 import {
   buildEligiblePlayerOptions,
   filterAndSortPlayerOptions,
@@ -12,7 +22,13 @@ import {
   getPlayerPoolPositions,
   type PlayerPoolSortKey,
 } from "@/lib/game/player-pool";
-import type { AttributeCategory, GameState, PlayerOption } from "@/lib/game/types";
+import type {
+  AttributeCategory,
+  EraOption,
+  GameState,
+  PlayerOption,
+  TeamOption,
+} from "@/lib/game/types";
 import { FinalResults } from "@/components/results/final-results";
 
 const categoryLabels: Record<AttributeCategory, string> = {
@@ -31,15 +47,6 @@ const categoryShortLabels: Record<AttributeCategory, string> = {
   defense: "DEF",
 };
 
-const gameStatusLabels: Record<GameState["status"], string> = {
-  idle: "Ready",
-  spinning: "Spinning matchup",
-  selectingPlayer: "Choose a player",
-  selectingCategory: "Choose an attribute",
-  roundComplete: "Round locked",
-  gameComplete: "Build complete",
-};
-
 const playerPoolSortLabels: Record<PlayerPoolSortKey, string> = {
   name: "Name A-Z",
   athleticism: "Athleticism",
@@ -56,6 +63,28 @@ const defaultPlayerPoolFilters = {
 };
 
 type PlayerPoolFilters = typeof defaultPlayerPoolFilters;
+
+type SpinAnimationTarget = "round" | "team" | "era";
+
+const DEFAULT_SPIN_ANIMATION_DURATION_MS = 2200;
+const REDUCED_SPIN_ANIMATION_DURATION_MS = 240;
+const SPIN_ANIMATION_SETTLE_HOLD_MS = 1000;
+const SPIN_WHEEL_STEP_MS = 150;
+
+type SpinAnimationDetails = {
+  target: SpinAnimationTarget;
+  teamItems: string[];
+  eraItems: string[];
+  finalTeamLabel: string | null;
+  finalEraLabel: string | null;
+};
+
+type RoundSpinPreview = {
+  key: string;
+  details: SpinAnimationDetails;
+  eraRandomValue: number;
+  teamRandomValue: number;
+};
 
 type PlayerPoolState =
   | {
@@ -98,6 +127,198 @@ function gameRandom() {
     : Math.random();
 }
 
+function getSpinAnimationDurationMs(prefersReducedMotion: boolean) {
+  const defaultDuration = prefersReducedMotion
+    ? REDUCED_SPIN_ANIMATION_DURATION_MS
+    : DEFAULT_SPIN_ANIMATION_DURATION_MS;
+
+  if (typeof window === "undefined") {
+    return defaultDuration;
+  }
+
+  const testDuration = window.localStorage.getItem(
+    "goat-builder-test-spin-animation-ms",
+  );
+  const parsedDuration = testDuration === null ? NaN : Number(testDuration);
+
+  return Number.isFinite(parsedDuration) && parsedDuration >= 0
+    ? parsedDuration
+    : defaultDuration;
+}
+
+function waitForSpinAnimation(prefersReducedMotion: boolean) {
+  return new Promise<void>((resolve) => {
+    window.setTimeout(resolve, getSpinAnimationDurationMs(prefersReducedMotion));
+  });
+}
+
+function takeTestRoundSpinRandomValues() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const sequence = window.localStorage.getItem(
+    "goat-builder-test-round-spin-sequence",
+  );
+
+  if (!sequence) {
+    return null;
+  }
+
+  const [teamRandomValue, eraRandomValue, ...remainingValues] =
+    sequence.split(",");
+
+  window.localStorage.setItem(
+    "goat-builder-test-round-spin-sequence",
+    remainingValues.join(","),
+  );
+
+  if (teamRandomValue === undefined || eraRandomValue === undefined) {
+    return null;
+  }
+
+  return [Number(teamRandomValue), Number(eraRandomValue)] as const;
+}
+
+function takeTestRoundSpinSelection(
+  teams: readonly TeamOption[],
+  eras: readonly EraOption[],
+) {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const sequence = window.localStorage.getItem(
+    "goat-builder-test-round-spin-selection-sequence",
+  );
+
+  if (!sequence) {
+    return null;
+  }
+
+  const [nextSelection, ...remainingSelections] = sequence.split(";");
+
+  window.localStorage.setItem(
+    "goat-builder-test-round-spin-selection-sequence",
+    remainingSelections.join(";"),
+  );
+
+  const [teamLookup, eraLookup] = nextSelection.split("|");
+  const teamIndex = teams.findIndex(
+    (team) =>
+      team.id === teamLookup ||
+      team.abbreviation === teamLookup ||
+      team.name === teamLookup,
+  );
+  const eraIndex = eras.findIndex(
+    (era) => era.id === eraLookup || era.label === eraLookup,
+  );
+
+  if (teamIndex === -1 || eraIndex === -1) {
+    return null;
+  }
+
+  return {
+    teamRandomValue: teamIndex / teams.length,
+    eraRandomValue: eraIndex / eras.length,
+  };
+}
+
+function randomFromValues(values: readonly number[]) {
+  let index = 0;
+
+  return () => {
+    const value = values[index % values.length] ?? 0;
+
+    index += 1;
+
+    return value;
+  };
+}
+
+function formatTeamLabel(team: TeamOption) {
+  return `${team.name} (${team.abbreviation})`;
+}
+
+function formatTeamItems(teams: readonly TeamOption[]) {
+  return teams.map(formatTeamLabel);
+}
+
+function formatEraItems(eras: readonly EraOption[]) {
+  return eras.map((era) => era.label);
+}
+
+function createRoundSpinPreview({
+  eras,
+  roundNumber,
+  teams,
+}: {
+  eras: readonly EraOption[];
+  roundNumber: number;
+  teams: readonly TeamOption[];
+}): RoundSpinPreview {
+  const testSelectionValues = takeTestRoundSpinSelection(teams, eras);
+  const testRandomValues = takeTestRoundSpinRandomValues();
+  const teamRandomValue =
+    testSelectionValues?.teamRandomValue ?? testRandomValues?.[0] ?? gameRandom();
+  const eraRandomValue =
+    testSelectionValues?.eraRandomValue ?? testRandomValues?.[1] ?? gameRandom();
+  const teamSelection = selectRandomItem(teams, () => teamRandomValue);
+  const eraSelection = selectRandomItem(eras, () => eraRandomValue);
+
+  return {
+    key: [
+      roundNumber,
+      teams.map((team) => team.id).join("|"),
+      eras.map((era) => era.id).join("|"),
+    ].join(":"),
+    details: {
+      target: "round",
+      teamItems: formatTeamItems(teams),
+      eraItems: formatEraItems(eras),
+      finalTeamLabel: teamSelection.ok
+        ? formatTeamLabel(teamSelection.item)
+        : null,
+      finalEraLabel: eraSelection.ok ? eraSelection.item.label : null,
+    },
+    eraRandomValue,
+    teamRandomValue,
+  };
+}
+
+function subscribeToReducedMotion(callback: () => void) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  mediaQuery.addEventListener("change", callback);
+
+  return () => {
+    mediaQuery.removeEventListener("change", callback);
+  };
+}
+
+function getReducedMotionSnapshot() {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
+function getReducedMotionServerSnapshot() {
+  return false;
+}
+
+function usePrefersReducedMotion() {
+  return useSyncExternalStore(
+    subscribeToReducedMotion,
+    getReducedMotionSnapshot,
+    getReducedMotionServerSnapshot,
+  );
+}
+
 export function GameTable() {
   const [gameState, dispatch] = useReducer(
     gameReducer,
@@ -110,6 +331,56 @@ export function GameTable() {
   const [playerPoolFilters, setPlayerPoolFilters] = useState<PlayerPoolFilters>(
     defaultPlayerPoolFilters,
   );
+  const [spinAnimationTarget, setSpinAnimationTargetState] =
+    useState<SpinAnimationTarget | null>(null);
+  const [spinAnimationDetails, setSpinAnimationDetails] =
+    useState<SpinAnimationDetails | null>(null);
+  const autoSpinRoundInFlightRef = useRef<number | null>(null);
+  const gameStateRef = useRef(gameState);
+  const playerPoolRequestRef = useRef(0);
+  const roundSpinRequestRef = useRef(0);
+  const spinAnimationTargetRef = useRef<SpinAnimationTarget | null>(null);
+  const roundSpinPreviewRef = useRef<RoundSpinPreview | null>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
+
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
+
+
+  const setSpinAnimationTarget = useCallback(
+    (target: SpinAnimationTarget | null) => {
+      spinAnimationTargetRef.current = target;
+      setSpinAnimationTargetState(target);
+      if (target === null) {
+        setSpinAnimationDetails(null);
+      }
+    },
+    [],
+  );
+
+  const beginSpinAnimation = useCallback(
+    (target: SpinAnimationTarget) => {
+      if (spinAnimationTargetRef.current !== null) {
+        return false;
+      }
+
+      setSpinAnimationTarget(target);
+      return true;
+    },
+    [setSpinAnimationTarget],
+  );
+
+  const finishSpinAnimation = useCallback(
+    (target: SpinAnimationTarget) => {
+      if (spinAnimationTargetRef.current === target) {
+        setSpinAnimationTarget(null);
+      }
+    },
+    [setSpinAnimationTarget],
+  );
+
+  const spinAnimationActive = spinAnimationTarget !== null;
 
   const clearPlayerPoolFilters = useCallback(() => {
     setPlayerPoolFilters(defaultPlayerPoolFilters);
@@ -118,32 +389,109 @@ export function GameTable() {
   const startGame = useCallback(async () => {
     setPlayerPoolState({ status: "idle" });
     clearPlayerPoolFilters();
+    autoSpinRoundInFlightRef.current = null;
+    roundSpinPreviewRef.current = null;
+    roundSpinRequestRef.current += 1;
+    setSpinAnimationTarget(null);
     dispatch({ type: "START_GAME" });
-  }, [clearPlayerPoolFilters]);
+  }, [clearPlayerPoolFilters, setSpinAnimationTarget]);
 
   const handleTeamRespin = useCallback(async () => {
-    const teams = await getTeams();
+    if (!beginSpinAnimation("team")) {
+      return;
+    }
 
     setPlayerPoolState({ status: "loading" });
     clearPlayerPoolFilters();
-    dispatch({
-      type: "USE_TEAM_RESPIN",
-      teams,
-      random: gameRandom,
-    });
-  }, [clearPlayerPoolFilters]);
+
+    try {
+      const teams = await getTeams();
+      const alternateTeams = teams.filter(
+        (team) => team.id !== gameState.currentTeam?.id,
+      );
+      const teamRandomValue = gameRandom();
+      const teamSelection = selectRandomItem(
+        alternateTeams,
+        () => teamRandomValue,
+      );
+
+      setSpinAnimationDetails({
+        target: "team",
+        teamItems: formatTeamItems(alternateTeams),
+        eraItems: gameState.currentEra ? [gameState.currentEra.label] : [],
+        finalTeamLabel: teamSelection.ok
+          ? formatTeamLabel(teamSelection.item)
+          : gameState.currentTeam
+            ? formatTeamLabel(gameState.currentTeam)
+            : null,
+        finalEraLabel: gameState.currentEra?.label ?? null,
+      });
+
+      await waitForSpinAnimation(prefersReducedMotion);
+
+      dispatch({
+        type: "USE_TEAM_RESPIN",
+        teams,
+        random: randomFromValues([teamRandomValue]),
+      });
+    } finally {
+      finishSpinAnimation("team");
+    }
+  }, [
+    beginSpinAnimation,
+    clearPlayerPoolFilters,
+    finishSpinAnimation,
+    gameState.currentEra,
+    gameState.currentTeam,
+    prefersReducedMotion,
+  ]);
 
   const handleEraRespin = useCallback(async () => {
-    const eras = await getEras();
+    if (!beginSpinAnimation("era")) {
+      return;
+    }
 
     setPlayerPoolState({ status: "loading" });
     clearPlayerPoolFilters();
-    dispatch({
-      type: "USE_ERA_RESPIN",
-      eras,
-      random: gameRandom,
-    });
-  }, [clearPlayerPoolFilters]);
+
+    try {
+      const eras = await getEras();
+      const alternateEras = eras.filter(
+        (era) => era.id !== gameState.currentEra?.id,
+      );
+      const eraRandomValue = gameRandom();
+      const eraSelection = selectRandomItem(alternateEras, () => eraRandomValue);
+
+      setSpinAnimationDetails({
+        target: "era",
+        teamItems: gameState.currentTeam ? [formatTeamLabel(gameState.currentTeam)] : [],
+        eraItems: formatEraItems(alternateEras),
+        finalTeamLabel: gameState.currentTeam
+          ? formatTeamLabel(gameState.currentTeam)
+          : null,
+        finalEraLabel: eraSelection.ok
+          ? eraSelection.item.label
+          : gameState.currentEra?.label ?? null,
+      });
+
+      await waitForSpinAnimation(prefersReducedMotion);
+
+      dispatch({
+        type: "USE_ERA_RESPIN",
+        eras,
+        random: randomFromValues([eraRandomValue]),
+      });
+    } finally {
+      finishSpinAnimation("era");
+    }
+  }, [
+    beginSpinAnimation,
+    clearPlayerPoolFilters,
+    finishSpinAnimation,
+    gameState.currentEra,
+    gameState.currentTeam,
+    prefersReducedMotion,
+  ]);
 
   const handleCategorySelect = useCallback((category: AttributeCategory) => {
     dispatch({
@@ -155,18 +503,44 @@ export function GameTable() {
   }, [clearPlayerPoolFilters]);
 
   const handleEmptyPoolSpinAgain = useCallback(async () => {
+    if (!beginSpinAnimation("round")) {
+      return;
+    }
+
     setPlayerPoolState({ status: "loading" });
     clearPlayerPoolFilters();
 
-    const [teams, eras] = await Promise.all([getTeams(), getEras()]);
+    try {
+      const [teams, eras] = await Promise.all([getTeams(), getEras()]);
+      const preview = createRoundSpinPreview({
+        eras,
+        roundNumber: gameState.currentRound,
+        teams,
+      });
 
-    dispatch({
-      type: "SPIN_AGAIN_FOR_EMPTY_POOL",
-      teams,
-      eras,
-      random: gameRandom,
-    });
-  }, [clearPlayerPoolFilters]);
+      setSpinAnimationDetails(preview.details);
+
+      await waitForSpinAnimation(prefersReducedMotion);
+
+      dispatch({
+        type: "SPIN_AGAIN_FOR_EMPTY_POOL",
+        teams,
+        eras,
+        random: randomFromValues([
+          preview.teamRandomValue,
+          preview.eraRandomValue,
+        ]),
+      });
+    } finally {
+      finishSpinAnimation("round");
+    }
+  }, [
+    beginSpinAnimation,
+    clearPlayerPoolFilters,
+    finishSpinAnimation,
+    gameState.currentRound,
+    prefersReducedMotion,
+  ]);
 
   const handlePlayerSelect = useCallback((player: PlayerOption) => {
     dispatch({
@@ -182,26 +556,87 @@ export function GameTable() {
       return;
     }
 
+    if (autoSpinRoundInFlightRef.current === gameState.currentRound) {
+      return;
+    }
+
+    autoSpinRoundInFlightRef.current = gameState.currentRound;
+    const requestId = roundSpinRequestRef.current + 1;
     let cancelled = false;
 
-    void Promise.all([getTeams(), getEras()]).then(([teams, eras]) => {
-      if (cancelled) {
-        return;
-      }
+    roundSpinRequestRef.current = requestId;
+    setSpinAnimationTarget("round");
+    setPlayerPoolState({ status: "loading" });
 
-      setPlayerPoolState({ status: "loading" });
-      dispatch({
-        type: "SPIN_ROUND",
-        teams,
-        eras,
-        random: gameRandom,
+    void Promise.all([getTeams(), getEras()])
+      .then(([teams, eras]) => {
+        const previewKey = [
+          gameState.currentRound,
+          teams.map((team) => team.id).join("|"),
+          eras.map((era) => era.id).join("|"),
+        ].join(":");
+        const preview =
+          roundSpinPreviewRef.current?.key === previewKey
+            ? roundSpinPreviewRef.current
+            : createRoundSpinPreview({
+                eras,
+                roundNumber: gameState.currentRound,
+                teams,
+              });
+
+        roundSpinPreviewRef.current = preview;
+        setSpinAnimationDetails(preview.details);
+
+        return waitForSpinAnimation(prefersReducedMotion).then(() => {
+          const latestGameState = gameStateRef.current;
+
+          if (
+            cancelled ||
+            roundSpinRequestRef.current !== requestId ||
+            latestGameState.status !== "spinning" ||
+            latestGameState.currentRound !== gameState.currentRound
+          ) {
+            return;
+          }
+
+          dispatch({
+            type: "SPIN_ROUND",
+            teams,
+            eras,
+            random: randomFromValues([
+              preview.teamRandomValue,
+              preview.eraRandomValue,
+            ]),
+          });
+          roundSpinPreviewRef.current = null;
+        });
+      })
+      .finally(() => {
+        if (cancelled) {
+          return;
+        }
+
+        if (autoSpinRoundInFlightRef.current === gameState.currentRound) {
+          autoSpinRoundInFlightRef.current = null;
+        }
+
+        finishSpinAnimation("round");
       });
-    });
 
     return () => {
       cancelled = true;
+
+      if (autoSpinRoundInFlightRef.current === gameState.currentRound) {
+        autoSpinRoundInFlightRef.current = null;
+      }
     };
-  }, [gameState.currentRound, gameState.status]);
+  }, [
+    finishSpinAnimation,
+    gameState.currentRound,
+    gameState.status,
+    prefersReducedMotion,
+    setSpinAnimationTarget,
+  ]);
 
   useEffect(() => {
     if (
@@ -212,13 +647,15 @@ export function GameTable() {
       return;
     }
 
-    let cancelled = false;
+    const requestId = playerPoolRequestRef.current + 1;
+
+    playerPoolRequestRef.current = requestId;
 
     void getPlayerPool(gameState.currentTeam.id, gameState.currentEra.id, {
       usedPlayerVersionIds: gameState.usedPlayerVersionIds,
     })
       .then((pool) => {
-        if (cancelled) {
+        if (playerPoolRequestRef.current !== requestId) {
           return;
         }
 
@@ -231,7 +668,7 @@ export function GameTable() {
         });
       })
       .catch(() => {
-        if (cancelled) {
+        if (playerPoolRequestRef.current !== requestId) {
           return;
         }
 
@@ -240,10 +677,6 @@ export function GameTable() {
           message: "Player pool unavailable.",
         });
       });
-
-    return () => {
-      cancelled = true;
-    };
   }, [
     gameState.currentEra,
     gameState.currentTeam,
@@ -276,15 +709,9 @@ export function GameTable() {
       <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-5xl flex-col justify-center gap-8">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="micro-label mb-4">
-              Active stat lab
-            </p>
             <h1 className="screen-title text-4xl leading-tight sm:text-5xl">
               Round {gameState.currentRound || 1} of {gameState.totalRounds}
             </h1>
-            <p className="state-pill mt-3">
-              {gameStatusLabels[gameState.status]}
-            </p>
           </div>
           <button
             className="outline-button inline-flex min-h-12 w-full items-center justify-center px-5 text-base sm:w-auto"
@@ -300,6 +727,7 @@ export function GameTable() {
         <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">
           <GameStatePanel
             gameState={gameState}
+            prefersReducedMotion={prefersReducedMotion}
             playerPoolFilters={playerPoolFilters}
             onEmptyPoolSpinAgain={handleEmptyPoolSpinAgain}
             onPlayerPoolFiltersChange={setPlayerPoolFilters}
@@ -308,6 +736,8 @@ export function GameTable() {
             onPlayerSelect={handlePlayerSelect}
             onTeamRespin={handleTeamRespin}
             playerPoolState={playerPoolState}
+            spinAnimationActive={spinAnimationActive}
+            spinAnimationTarget={spinAnimationTarget}
           />
           <ProgressPanel
             gameState={gameState}
@@ -315,12 +745,28 @@ export function GameTable() {
           />
         </div>
       </section>
+      <SpinAnimationDialog
+        animation={spinAnimationDetails}
+        key={
+          spinAnimationDetails
+            ? [
+                spinAnimationDetails.target,
+                spinAnimationDetails.finalTeamLabel,
+                spinAnimationDetails.finalEraLabel,
+                spinAnimationDetails.teamItems.join("|"),
+                spinAnimationDetails.eraItems.join("|"),
+              ].join(":")
+            : "settled"
+        }
+        prefersReducedMotion={prefersReducedMotion}
+      />
     </main>
   );
 }
 
 function GameStatePanel({
   gameState,
+  prefersReducedMotion,
   playerPoolFilters,
   onEmptyPoolSpinAgain,
   onEraRespin,
@@ -329,8 +775,11 @@ function GameStatePanel({
   onPlayerSelect,
   onTeamRespin,
   playerPoolState,
+  spinAnimationActive,
+  spinAnimationTarget,
 }: {
   gameState: GameState;
+  prefersReducedMotion: boolean;
   playerPoolFilters: PlayerPoolFilters;
   onEmptyPoolSpinAgain: () => Promise<void>;
   onEraRespin: () => Promise<void>;
@@ -339,6 +788,8 @@ function GameStatePanel({
   onPlayerSelect: (player: PlayerOption) => void;
   onTeamRespin: () => Promise<void>;
   playerPoolState: PlayerPoolState;
+  spinAnimationActive: boolean;
+  spinAnimationTarget: SpinAnimationTarget | null;
 }) {
   return (
     <section
@@ -347,8 +798,11 @@ function GameStatePanel({
     >
       <SpinPanel
         gameState={gameState}
+        prefersReducedMotion={prefersReducedMotion}
         onEraRespin={onEraRespin}
         onTeamRespin={onTeamRespin}
+        spinAnimationActive={spinAnimationActive}
+        spinAnimationTarget={spinAnimationTarget}
       />
 
       {gameState.status === "selectingPlayer" ||
@@ -408,7 +862,7 @@ function PlayerPoolPanel({
   return (
     <div
       data-testid="player-pool-panel"
-      className="game-panel-soft mt-6 p-4"
+      className="game-panel-plain mt-5 pt-5"
     >
       {playerPoolState.status === "loading" ? (
         <div
@@ -465,17 +919,14 @@ function PlayerPoolPanel({
             <div
               data-testid="player-pool-filtered-empty"
               role="status"
-              className="stat-strip p-4"
+              className="stat-strip flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
             >
               <p className="text-sm font-black text-foreground">
-                No players match the current filters.
-              </p>
-              <p className="mt-1 text-sm font-bold text-muted">
-                Clear filters or adjust the search and position controls.
+                No players match these filters.
               </p>
               <button
                 type="button"
-                className="outline-button mt-4 inline-flex min-h-11 items-center justify-center px-4 text-sm"
+                className="outline-button inline-flex min-h-11 items-center justify-center px-4 text-sm"
                 onClick={onClearFilters}
               >
                 Clear Filters
@@ -629,9 +1080,6 @@ function PlayerCard({
           <h3 className="truncate text-base font-black sm:text-lg">
             {player.name}
           </h3>
-          <p className="mt-1 truncate text-xs font-bold text-muted sm:text-sm">
-            {player.versionLabel}
-          </p>
           <p className="mt-2 inline-flex min-h-7 items-center rounded-md border border-accent/25 bg-accent/10 px-2 text-xs font-black text-accent">
             {player.position}
           </p>
@@ -659,18 +1107,26 @@ function PlayerCard({
 
 function SpinPanel({
   gameState,
+  prefersReducedMotion,
   onEraRespin,
   onTeamRespin,
+  spinAnimationActive,
+  spinAnimationTarget,
 }: {
   gameState: GameState;
+  prefersReducedMotion: boolean;
   onEraRespin: () => Promise<void>;
   onTeamRespin: () => Promise<void>;
+  spinAnimationActive: boolean;
+  spinAnimationTarget: SpinAnimationTarget | null;
 }) {
   const teamRespinDisabled =
+    spinAnimationActive ||
     (gameState.status !== "selectingPlayer" &&
       gameState.status !== "selectingCategory") ||
     !gameState.respins.teamRespinAvailable;
   const eraRespinDisabled =
+    spinAnimationActive ||
     (gameState.status !== "selectingPlayer" &&
       gameState.status !== "selectingCategory") ||
     !gameState.respins.eraRespinAvailable;
@@ -679,7 +1135,18 @@ function SpinPanel({
     : "grid gap-3 sm:grid-cols-2";
 
   return (
-    <div className="mt-6">
+    <div>
+      <div
+        aria-live="polite"
+        className="sr-only"
+        data-animation-state={spinAnimationTarget ?? "settled"}
+        data-motion-mode={prefersReducedMotion ? "reduced" : "full"}
+        data-testid="spin-animation-state"
+      >
+        {spinAnimationTarget === null
+          ? "Spin settled"
+          : `${spinAnimationTarget} generating`}
+      </div>
       {gameState.spinError ? (
         <div
           role="alert"
@@ -693,17 +1160,23 @@ function SpinPanel({
       ) : null}
 
       <div className={spinGridClass}>
-        <div className="space-y-2">
-          <RespinButton
-            disabled={teamRespinDisabled}
-            label="Team Respin"
-            testId="team-respin-button"
-            usedRound={gameState.respins.teamRespinUsedRound}
-            onClick={onTeamRespin}
-          />
+        <div>
           <SpinCard
+            isAnimating={
+              spinAnimationTarget === "round" || spinAnimationTarget === "team"
+            }
             testId="team-display"
             label="Team"
+            action={
+              <RespinButton
+                disabled={teamRespinDisabled}
+                isAnimating={spinAnimationTarget === "team"}
+                label="Team"
+                testId="team-respin-button"
+                usedRound={gameState.respins.teamRespinUsedRound}
+                onClick={onTeamRespin}
+              />
+            }
             value={
               gameState.currentTeam
                 ? `${gameState.currentTeam.name} (${gameState.currentTeam.abbreviation})`
@@ -711,18 +1184,26 @@ function SpinPanel({
             }
           />
         </div>
-        <div className="space-y-2">
-          <RespinButton
-            disabled={eraRespinDisabled}
-            label="Era Respin"
-            testId="era-respin-button"
-            usedRound={gameState.respins.eraRespinUsedRound}
-            onClick={onEraRespin}
-          />
+        <div>
           <SpinCard
+            isAnimating={
+              spinAnimationTarget === "round" || spinAnimationTarget === "era"
+            }
             testId="era-display"
             label="Era"
-            value={gameState.currentEra ? gameState.currentEra.label : "Spinning..."}
+            action={
+              <RespinButton
+                disabled={eraRespinDisabled}
+                isAnimating={spinAnimationTarget === "era"}
+                label="Era"
+                testId="era-respin-button"
+                usedRound={gameState.respins.eraRespinUsedRound}
+                onClick={onEraRespin}
+              />
+            }
+            value={
+              gameState.currentEra ? gameState.currentEra.label : "Spinning..."
+            }
           />
         </div>
       </div>
@@ -732,40 +1213,51 @@ function SpinPanel({
 
 function RespinButton({
   disabled,
+  isAnimating,
   label,
   onClick,
   testId,
   usedRound,
 }: {
   disabled: boolean;
+  isAnimating: boolean;
   label: string;
   onClick: () => Promise<void>;
   testId: string;
   usedRound: number | null;
 }) {
+  const buttonText = isAnimating
+    ? "Spinning"
+    : usedRound === null
+      ? "Respin"
+      : `Used R${usedRound}`;
+
   return (
     <button
       data-testid={testId}
-      className="outline-button group inline-flex min-h-11 w-full items-center justify-between gap-3 px-3 py-2 text-left text-xs"
+      className="outline-button inline-flex min-h-11 shrink-0 items-center justify-center px-3 text-xs"
       type="button"
       disabled={disabled}
+      aria-busy={isAnimating}
+      aria-label={`${label} ${buttonText}`}
       onClick={() => {
         void onClick();
       }}
     >
-      <span>{label}</span>
-      <span className="text-[0.65rem] uppercase text-warning group-disabled:text-muted">
-        {usedRound === null ? "Available" : `Used R${usedRound}`}
-      </span>
+      {buttonText}
     </button>
   );
 }
 
 function SpinCard({
+  isAnimating,
+  action,
   label,
   testId,
   value,
 }: {
+  isAnimating: boolean;
+  action?: ReactNode;
   label: string;
   testId: string;
   value: string;
@@ -773,12 +1265,145 @@ function SpinCard({
   return (
     <div
       data-testid={testId}
+      data-animation-state={isAnimating ? "generating" : "settled"}
       aria-label={label}
-      className="stat-strip flex min-h-14 items-center px-4 py-3"
+      aria-busy={isAnimating}
+      className={`spin-result-card stat-strip min-h-24 px-4 py-3 ${
+        isAnimating ? "is-generating" : ""
+      }`}
     >
-      <p className="min-w-0 break-words text-lg font-black sm:text-xl">
-        {value}
-      </p>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-muted">
+          {label}
+        </p>
+        {action}
+      </div>
+      <p className="min-w-0 break-words text-xl font-black sm:text-2xl">{value}</p>
+    </div>
+  );
+}
+
+function SpinAnimationDialog({
+  animation,
+  prefersReducedMotion,
+}: {
+  animation: SpinAnimationDetails | null;
+  prefersReducedMotion: boolean;
+}) {
+  const [displayIndex, setDisplayIndex] = useState(0);
+  const [settled, setSettled] = useState(prefersReducedMotion);
+
+  useEffect(() => {
+    if (!animation || prefersReducedMotion || settled) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setDisplayIndex((currentIndex) => currentIndex + 1);
+    }, SPIN_WHEEL_STEP_MS);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [animation, prefersReducedMotion, settled]);
+
+  useEffect(() => {
+    if (!animation || prefersReducedMotion) {
+      return;
+    }
+
+    const settleDelay = Math.max(
+      getSpinAnimationDurationMs(prefersReducedMotion) -
+        SPIN_ANIMATION_SETTLE_HOLD_MS,
+      0,
+    );
+    const timeoutId = window.setTimeout(() => {
+      setSettled(true);
+    }, settleDelay);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [animation, prefersReducedMotion]);
+
+  if (animation === null) {
+    return null;
+  }
+
+  const { target } = animation;
+
+  return (
+    <div
+      className="spin-dialog-backdrop"
+      data-testid="spin-animation-dialog-backdrop"
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="spin-animation-dialog-title"
+        className="spin-dialog game-panel p-6 sm:p-8"
+        data-animation-state={target}
+        data-motion-mode={prefersReducedMotion ? "reduced" : "full"}
+        data-testid="spin-animation-dialog"
+      >
+        <h2
+          id="spin-animation-dialog-title"
+          className="sr-only"
+        >
+          Spin result
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <SpinWheelColumn
+            displayIndex={displayIndex}
+            finalLabel={animation.finalTeamLabel}
+            items={animation.teamItems}
+            settled={settled || prefersReducedMotion}
+            testId="spin-animation-team-wheel"
+          />
+          <SpinWheelColumn
+            displayIndex={displayIndex + 2}
+            finalLabel={animation.finalEraLabel}
+            items={animation.eraItems}
+            settled={settled || prefersReducedMotion}
+            testId="spin-animation-era-wheel"
+          />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function SpinWheelColumn({
+  displayIndex,
+  finalLabel,
+  items,
+  settled,
+  testId,
+}: {
+  displayIndex: number;
+  finalLabel: string | null;
+  items: string[];
+  settled: boolean;
+  testId: string;
+}) {
+  const wheelItems = items.length > 0 ? items : finalLabel ? [finalLabel] : ["--"];
+  const visibleLabel = settled
+    ? finalLabel ?? wheelItems[0]
+    : wheelItems[displayIndex % wheelItems.length];
+
+  return (
+    <div
+      className={`spin-wheel-column p-4 ${settled ? "is-settled" : ""}`}
+      data-testid={testId}
+    >
+      <div className="spin-wheel-window">
+        <p
+          className="spin-wheel-value"
+          key={visibleLabel}
+        >
+          {visibleLabel}
+        </p>
+      </div>
     </div>
   );
 }
@@ -798,7 +1423,7 @@ function ProgressPanel({
       className="game-panel-soft p-5"
     >
       <h2 className="text-xl font-black text-foreground">Build Progress</h2>
-      <div className="mt-5 space-y-3">
+      <div className="mt-4 space-y-3">
         {MVP_CATEGORIES.map((category) => {
           const completedCategory = gameState.completedCategories.find(
             (completed) => completed.category === category,
@@ -812,12 +1437,12 @@ function ProgressPanel({
             completedCategory?.rating ??
             (selectedPlayer ? getPlayerOptionRating(selectedPlayer, category) : null);
           const statusLabel = completedCategory
-            ? "Locked"
+            ? `${completedCategory.teamName} / ${completedCategory.eraLabel}`
             : canApply
-              ? "Apply selected player"
+              ? selectedPlayer.name
               : selectedPlayer
-                ? "Unavailable"
-                : "Select a player";
+                ? "Locked"
+                : "Select player";
 
           return (
             <button
@@ -848,15 +1473,13 @@ function ProgressPanel({
                     {categoryLabels[category]}
                   </span>
                   <span className="category-title mt-2 block truncate text-base font-black text-foreground">
-                    {completedCategory?.playerName ??
-                      selectedPlayer?.name ??
-                      "Empty"}
+                    {completedCategory?.playerName ?? statusLabel}
                   </span>
-                  <span className="category-detail mt-1 block truncate text-xs font-bold text-muted">
-                    {completedCategory
-                      ? `${completedCategory.teamName} / ${completedCategory.eraLabel}`
-                      : statusLabel}
-                  </span>
+                  {completedCategory ? (
+                    <span className="category-detail mt-1 block truncate text-xs font-bold text-muted">
+                      {statusLabel}
+                    </span>
+                  ) : null}
                 </span>
                 <span className="stat-chip min-w-16 px-3 py-2 text-center">
                   <span className="block text-xs font-bold uppercase tracking-[0.14em] text-accent">

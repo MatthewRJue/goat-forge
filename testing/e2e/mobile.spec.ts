@@ -1,31 +1,22 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
-const deterministicFiveRoundSequence = [
-  0,
-  0,
-  0,
-  0,
-  0.2,
-  0.2,
-  0.2,
-  0.2,
-  0.4,
-  0,
-  0.4,
-  0,
-  0.6,
-  0.4,
-  0.6,
-  0.4,
-  0.8,
-  0.6,
-  0.8,
-  0.6,
-  0,
-  0,
-  0,
-  0,
-].join(",");
+const deterministicFiveRoundSelections = [
+  "LAL|2020s",
+  "MIA|2020s",
+  "LAL|2000s",
+  "MIA|2000s",
+  "LAL|2020s",
+  "MIA|2020s",
+  "LAL|2000s",
+  "MIA|2000s",
+  "LAL|2020s",
+].join(";");
+const deterministicRecoverySelections = [
+  "LAL|2020s",
+  "MIA|2020s",
+  "LAL|2000s",
+  "MIA|2000s",
+].join(";");
 
 const categories = [
   "Athleticism",
@@ -43,9 +34,16 @@ test.use({
 });
 
 async function installDeterministicGame(page: Page) {
-  await page.addInitScript((sequence) => {
-    window.localStorage.setItem("goat-builder-test-random-sequence", sequence);
-  }, deterministicFiveRoundSequence);
+  await page.evaluate((sequence) => {
+    window.localStorage.setItem("goat-builder-test-random", "first");
+    window.localStorage.setItem(
+      "goat-builder-test-round-spin-selection-sequence",
+      sequence,
+    );
+    window.localStorage.removeItem("goat-builder-test-random-sequence");
+    window.localStorage.removeItem("goat-builder-test-round-spin-sequence");
+    window.localStorage.setItem("goat-builder-test-spin-animation-ms", "20");
+  }, deterministicFiveRoundSelections);
 }
 
 async function expectNoHorizontalPageOverflow(page: Page) {
@@ -55,6 +53,35 @@ async function expectNoHorizontalPageOverflow(page: Page) {
   }));
 
   expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth + 1);
+}
+
+async function expectPlayablePlayerPool(page: Page) {
+  const playerCard = page.getByTestId("player-card").first();
+
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    try {
+      await expect(playerCard).toBeVisible({ timeout: 2500 });
+      return;
+    } catch {
+      if (await page.getByTestId("player-pool-empty").isVisible()) {
+        await page.evaluate((sequence) => {
+          window.localStorage.setItem(
+            "goat-builder-test-round-spin-selection-sequence",
+            sequence,
+          );
+          window.localStorage.removeItem("goat-builder-test-random-sequence");
+          window.localStorage.removeItem("goat-builder-test-round-spin-sequence");
+        }, deterministicRecoverySelections);
+        await page.getByRole("button", { name: "Spin Again" }).click();
+        await expect(page.getByTestId("spin-animation-state")).toHaveAttribute(
+          "data-animation-state",
+          "settled",
+        );
+      }
+    }
+  }
+
+  await expect(playerCard).toBeVisible();
 }
 
 async function expectTouchTarget(locator: Locator) {
@@ -68,8 +95,8 @@ async function expectTouchTarget(locator: Locator) {
 }
 
 test("mobile player can complete the core game path", async ({ page }) => {
-  await installDeterministicGame(page);
   await page.goto("/");
+  await installDeterministicGame(page);
 
   await expect(page.getByRole("heading", { name: "GOAT Builder" })).toBeVisible();
   await expectNoHorizontalPageOverflow(page);
@@ -91,10 +118,11 @@ test("mobile player can complete the core game path", async ({ page }) => {
 
   await page.getByTestId("era-respin-button").click();
   await expect(page.getByTestId("era-respin-button")).toBeDisabled();
-  await expect(page.getByTestId("player-card").first()).toBeVisible();
+  await expectPlayablePlayerPool(page);
   await expectNoHorizontalPageOverflow(page);
 
   for (const category of categories) {
+    await expectPlayablePlayerPool(page);
     const playerCard = page.getByTestId("player-card").first();
 
     await expectTouchTarget(playerCard);

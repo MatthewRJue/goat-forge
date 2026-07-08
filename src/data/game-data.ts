@@ -88,7 +88,10 @@ function shouldForceSeedData() {
 
   return Boolean(
     window.localStorage.getItem("goat-builder-test-random") !== null ||
-      window.localStorage.getItem("goat-builder-test-random-sequence") !== null,
+      window.localStorage.getItem("goat-builder-test-random-sequence") !== null ||
+      window.localStorage.getItem(
+        "goat-builder-test-round-spin-selection-sequence",
+      ) !== null,
   );
 }
 
