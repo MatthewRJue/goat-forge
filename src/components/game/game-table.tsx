@@ -707,14 +707,38 @@ export function GameTable() {
   return (
     <main className="court-shell px-6 py-10 sm:px-10">
       <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-5xl flex-col justify-center gap-8">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="screen-title text-4xl leading-tight sm:text-5xl">
+            <p className="micro-label mb-3">GOAT Builder</p>
+            <h1 className="screen-title text-5xl sm:text-6xl">
               Round {gameState.currentRound || 1} of {gameState.totalRounds}
             </h1>
+            <div
+              aria-hidden="true"
+              className="mt-4 flex items-center gap-1.5"
+            >
+              {Array.from({ length: gameState.totalRounds }).map(
+                (_, roundIndex) => {
+                  const completedRounds = gameState.completedCategories.length;
+                  const dotState =
+                    roundIndex < completedRounds
+                      ? "is-done"
+                      : roundIndex === completedRounds
+                        ? "is-current"
+                        : "";
+
+                  return (
+                    <span
+                      key={roundIndex}
+                      className={`round-dot ${dotState}`}
+                    />
+                  );
+                },
+              )}
+            </div>
           </div>
           <button
-            className="outline-button inline-flex min-h-12 w-full items-center justify-center px-5 text-base sm:w-auto"
+            className="outline-button inline-flex min-h-12 w-full items-center justify-center px-6 text-sm sm:w-auto"
             type="button"
             onClick={() => {
               void startGame();
@@ -867,7 +891,7 @@ function PlayerPoolPanel({
       {playerPoolState.status === "loading" ? (
         <div
           data-testid="player-pool-loading"
-          className="stat-strip p-4 text-sm font-bold text-muted"
+          className="stat-strip p-4 font-mono text-xs font-bold uppercase tracking-[0.18em] text-muted"
         >
           Loading player pool
         </div>
@@ -878,7 +902,7 @@ function PlayerPoolPanel({
           role="alert"
           className="alert-panel p-4"
         >
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-danger">
+          <p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-danger">
             Player pool unavailable
           </p>
           <p className="mt-2 text-base font-bold">{playerPoolState.message}</p>
@@ -891,7 +915,7 @@ function PlayerPoolPanel({
           role="alert"
           className="alert-panel p-4"
         >
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-danger">
+          <p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-danger">
             No eligible players found
           </p>
           <button
@@ -971,8 +995,8 @@ function PlayerPoolControls({
       aria-label="Player list controls"
       className="grid gap-2 sm:grid-cols-[1.2fr_0.8fr_1fr_auto] sm:items-end"
     >
-      <label className="space-y-1">
-        <span className="text-xs font-black uppercase tracking-[0.14em] text-muted">
+      <label className="space-y-1.5">
+        <span className="font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em] text-muted">
           Search
         </span>
         <input
@@ -989,8 +1013,8 @@ function PlayerPoolControls({
         />
       </label>
 
-      <label className="space-y-1">
-        <span className="text-xs font-black uppercase tracking-[0.14em] text-muted">
+      <label className="space-y-1.5">
+        <span className="font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em] text-muted">
           Position
         </span>
         <select
@@ -1016,8 +1040,8 @@ function PlayerPoolControls({
         </select>
       </label>
 
-      <label className="space-y-1">
-        <span className="text-xs font-black uppercase tracking-[0.14em] text-muted">
+      <label className="space-y-1.5">
+        <span className="font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em] text-muted">
           Sort
         </span>
         <select
@@ -1077,24 +1101,24 @@ function PlayerCard({
     >
       <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
         <div className="min-w-0 sm:flex-1">
-          <h3 className="truncate text-base font-black sm:text-lg">
+          <h3 className="truncate text-base font-bold sm:text-lg">
             {player.name}
           </h3>
-          <p className="mt-2 inline-flex min-h-7 items-center rounded-md border border-accent/25 bg-accent/10 px-2 text-xs font-black text-accent">
+          <p className="mt-2 inline-flex min-h-6 items-center rounded-full border border-accent/30 bg-accent/10 px-2.5 font-mono text-[0.65rem] font-bold uppercase tracking-[0.08em] text-accent">
             {player.position}
           </p>
         </div>
-        <div className="grid w-full grid-cols-5 gap-1 sm:w-auto sm:shrink-0 sm:gap-2">
+        <div className="grid w-full grid-cols-5 gap-1 sm:w-auto sm:shrink-0 sm:gap-1.5">
           {MVP_CATEGORIES.map((category) => (
             <div
               key={category}
-              className="stat-chip min-w-0 px-1 py-2 text-center sm:w-14"
+              className={`stat-chip cat-chip cat-${category} min-w-0 px-1 py-2 text-center sm:w-14`}
             >
-              <p className="text-[0.55rem] font-bold uppercase leading-none text-accent sm:text-[0.65rem]">
+              <p className="cat-ink text-[0.55rem] font-bold uppercase leading-none sm:text-[0.6rem]">
                 <span className="sr-only">{categoryLabels[category]}</span>
                 <span aria-hidden="true">{categoryShortLabels[category]}</span>
               </p>
-              <p className="mt-1 text-base font-black sm:text-xl">
+              <p className="mt-1 font-mono text-base font-bold sm:text-lg">
                 {getPlayerOptionRating(player, category)}
               </p>
             </div>
@@ -1152,7 +1176,7 @@ function SpinPanel({
           role="alert"
           className="alert-panel p-4"
         >
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-danger">
+          <p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-danger">
             Spin unavailable
           </p>
           <p className="mt-2 text-base font-bold">{gameState.spinError.message}</p>
@@ -1273,12 +1297,12 @@ function SpinCard({
       }`}
     >
       <div className="mb-3 flex items-center justify-between gap-3">
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-muted">
+        <p className="font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em] text-muted">
           {label}
         </p>
         {action}
       </div>
-      <p className="min-w-0 break-words text-xl font-black sm:text-2xl">{value}</p>
+      <p className="min-w-0 break-words text-xl font-bold sm:text-2xl">{value}</p>
     </div>
   );
 }
@@ -1422,8 +1446,8 @@ function ProgressPanel({
       aria-label="Build progress"
       className="game-panel-soft p-5"
     >
-      <h2 className="text-xl font-black text-foreground">Build Progress</h2>
-      <div className="mt-4 space-y-3">
+      <h2 className="panel-title">Build Progress</h2>
+      <div className="mt-5 space-y-3">
         {MVP_CATEGORIES.map((category) => {
           const completedCategory = gameState.completedCategories.find(
             (completed) => completed.category === category,
@@ -1456,7 +1480,7 @@ function ProgressPanel({
               key={category}
               type="button"
               disabled={!canApply}
-              className={`stat-card w-full p-4 text-left ${
+              className={`stat-card cat-${category} w-full p-4 text-left ${
                 completedCategory
                   ? "is-complete"
                   : canApply
@@ -1469,23 +1493,23 @@ function ProgressPanel({
             >
               <span className="flex items-start justify-between gap-3">
                 <span className="min-w-0">
-                  <span className="category-name block text-xs font-bold uppercase tracking-[0.14em] text-warning">
+                  <span className="category-name block font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em]">
                     {categoryLabels[category]}
                   </span>
-                  <span className="category-title mt-2 block truncate text-base font-black text-foreground">
+                  <span className="category-title mt-2 block truncate text-base font-bold text-foreground">
                     {completedCategory?.playerName ?? statusLabel}
                   </span>
                   {completedCategory ? (
-                    <span className="category-detail mt-1 block truncate text-xs font-bold text-muted">
+                    <span className="category-detail mt-1 block truncate text-xs font-medium text-muted">
                       {statusLabel}
                     </span>
                   ) : null}
                 </span>
-                <span className="stat-chip min-w-16 px-3 py-2 text-center">
-                  <span className="block text-xs font-bold uppercase tracking-[0.14em] text-accent">
+                <span className="stat-chip cat-chip min-w-16 px-3 py-2 text-center">
+                  <span className="block text-[0.6rem] font-bold uppercase tracking-[0.12em] text-muted">
                     Rating
                   </span>
-                  <span className="block text-2xl font-black">
+                  <span className="block font-mono text-2xl font-bold">
                     {rating ?? "--"}
                   </span>
                 </span>
