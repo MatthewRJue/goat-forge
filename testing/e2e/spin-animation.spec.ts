@@ -24,7 +24,7 @@ test("start game shows a generating spin state before revealing team and era", a
     "round",
   );
   await expect(page.getByTestId("spin-animation-team-wheel")).toContainText(
-    "Los Angeles Lakers",
+    "LAL",
   );
   await expect(page.getByTestId("spin-animation-era-wheel")).toContainText(
     "1980s",
@@ -67,7 +67,7 @@ test("team and era respins animate and block duplicate spin actions", async ({
     "team",
   );
   await expect(page.getByTestId("spin-animation-team-wheel")).toContainText(
-    "Chicago Bulls",
+    "CHI",
   );
   await expect(page.getByTestId("spin-animation-era-wheel")).toContainText(
     "1980s",
@@ -94,7 +94,7 @@ test("team and era respins animate and block duplicate spin actions", async ({
     "era",
   );
   await expect(page.getByTestId("spin-animation-team-wheel")).toContainText(
-    "Chicago Bulls",
+    "CHI",
   );
   await expect(page.getByTestId("spin-animation-era-wheel")).toContainText(
     "1990s",
@@ -128,7 +128,7 @@ test("reduced-motion users get a non-moving generating state", async ({
   );
   await expect(page.getByRole("dialog", { name: "Spin result" })).toBeVisible();
   await expect(page.getByTestId("spin-animation-team-wheel")).toContainText(
-    "Los Angeles Lakers",
+    "LAL",
   );
   await expect(page.getByTestId("spin-animation-era-wheel")).toContainText(
     "1980s",
@@ -175,7 +175,7 @@ test("empty-pool spin again shows the spin animation before replacing results", 
     "round",
   );
   await expect(page.getByTestId("spin-animation-team-wheel")).toContainText(
-    "Los Angeles Lakers",
+    "LAL",
   );
   await expect(page.getByTestId("spin-animation-era-wheel")).toContainText(
     "1980s",

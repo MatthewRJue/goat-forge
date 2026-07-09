@@ -136,7 +136,7 @@ test("dark mode keeps the preserved game surface readable", async ({ page }) => 
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.locator("html")).toHaveCSS("color-scheme", "dark");
   await expect(
-    page.getByRole("heading", { name: "Round 1 of 5" }),
+    page.getByRole("heading", { name: "Round 1" }),
   ).toBeVisible();
   await expectPlayablePlayerPool(page);
   await expect(page.getByTestId("team-respin-button")).toBeEnabled();

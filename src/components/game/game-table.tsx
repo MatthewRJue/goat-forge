@@ -237,7 +237,7 @@ function randomFromValues(values: readonly number[]) {
 }
 
 function formatTeamLabel(team: TeamOption) {
-  return `${team.name} (${team.abbreviation})`;
+  return team.abbreviation;
 }
 
 function formatTeamItems(teams: readonly TeamOption[]) {
@@ -711,7 +711,7 @@ export function GameTable() {
           <div>
             <p className="micro-label mb-3">GOAT Builder</p>
             <h1 className="screen-title text-5xl sm:text-6xl">
-              Round {gameState.currentRound || 1} of {gameState.totalRounds}
+              Round {gameState.currentRound || 1}
             </h1>
             <div
               aria-hidden="true"
@@ -1260,7 +1260,7 @@ function RespinButton({
   return (
     <button
       data-testid={testId}
-      className="outline-button inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-0"
+      className="outline-button inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full p-0"
       type="button"
       disabled={disabled}
       aria-busy={isAnimating}
@@ -1396,7 +1396,7 @@ function SpinAnimationDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="spin-animation-dialog-title"
-        className="spin-dialog game-panel p-6 sm:p-8"
+        className="spin-dialog game-panel p-5 sm:p-6"
         data-animation-state={target}
         data-motion-mode={prefersReducedMotion ? "reduced" : "full"}
         data-testid="spin-animation-dialog"
@@ -1448,16 +1448,11 @@ function SpinWheelColumn({
 
   return (
     <div
-      className={`spin-wheel-column p-4 ${settled ? "is-settled" : ""}`}
+      className={`spin-wheel-column p-3 ${settled ? "is-settled" : ""}`}
       data-testid={testId}
     >
       <div className="spin-wheel-window">
-        <p
-          className="spin-wheel-value"
-          key={visibleLabel}
-        >
-          {visibleLabel}
-        </p>
+        <p className="spin-wheel-value">{visibleLabel}</p>
       </div>
     </div>
   );

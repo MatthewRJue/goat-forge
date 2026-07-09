@@ -77,7 +77,7 @@ test("player can complete a five-round game without creating a sixth round", asy
 
   for (const [index, category] of categories.entries()) {
     await expect(
-      page.getByRole("heading", { name: `Round ${index + 1} of 5` }),
+      page.getByRole("heading", { name: `Round ${index + 1}` }),
     ).toBeVisible();
     await expect(page.getByTestId("player-pool-panel")).toBeVisible();
     await expectPlayablePlayerPool(page);
@@ -143,7 +143,7 @@ test("player can complete a five-round game without creating a sixth round", asy
   await page.getByTestId("play-again-button").click();
 
   await expect(page.getByTestId("final-results-status")).toBeHidden();
-  await expect(page.getByRole("heading", { name: "Round 1 of 5" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Round 1" })).toBeVisible();
   await expect(page.getByTestId("player-pool-panel")).toBeVisible();
   await expect(page.getByTestId("completed-category")).toHaveCount(0);
   await expect(page.getByTestId("locked-category")).toHaveCount(5);
