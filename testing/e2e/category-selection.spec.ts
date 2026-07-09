@@ -65,7 +65,7 @@ test("selecting an attribute completes the selected player category", async ({
     .click();
 
   await expect(
-    page.getByRole("heading", { name: "Round 2 of 5" }),
+    page.getByRole("heading", { name: "Round 2" }),
   ).toBeVisible();
   await expect(page.getByTestId("player-pool-panel")).toBeVisible();
   await expect(page.getByTestId("completed-category")).toHaveCount(1);

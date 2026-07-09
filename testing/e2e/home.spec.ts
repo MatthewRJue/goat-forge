@@ -14,7 +14,7 @@ test("home page opens the game route", async ({ page }) => {
 
   await expect(page).toHaveURL(/\/game$/);
   await expect(
-    page.getByRole("heading", { name: "Round 1 of 5" }),
+    page.getByRole("heading", { name: "Round 1" }),
   ).toBeVisible();
   await expect(page.getByTestId("player-pool-panel")).toBeVisible();
   await expect(page.getByTestId("team-display")).toBeVisible();

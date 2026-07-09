@@ -105,7 +105,7 @@ test("mobile player can complete the core game path", async ({ page }) => {
   await page.getByTestId("start-game-button").click();
 
   await expect(
-    page.getByRole("heading", { name: "Round 1 of 5" }),
+    page.getByRole("heading", { name: "Round 1" }),
   ).toBeVisible();
   await expect(page.getByTestId("player-pool-panel")).toBeVisible();
   await expect(page.getByLabel("Build progress")).toBeVisible();

@@ -237,7 +237,7 @@ function randomFromValues(values: readonly number[]) {
 }
 
 function formatTeamLabel(team: TeamOption) {
-  return `${team.name} (${team.abbreviation})`;
+  return team.abbreviation;
 }
 
 function formatTeamItems(teams: readonly TeamOption[]) {
@@ -711,7 +711,7 @@ export function GameTable() {
           <div>
             <p className="micro-label mb-3">GOAT Builder</p>
             <h1 className="screen-title text-5xl sm:text-6xl">
-              Round {gameState.currentRound || 1} of {gameState.totalRounds}
+              Round {gameState.currentRound || 1}
             </h1>
             <div
               aria-hidden="true"
@@ -1184,7 +1184,7 @@ function SpinPanel({
       ) : null}
 
       <div className={spinGridClass}>
-        <div>
+        <div className="min-w-0">
           <SpinCard
             isAnimating={
               spinAnimationTarget === "round" || spinAnimationTarget === "team"
@@ -1203,12 +1203,13 @@ function SpinPanel({
             }
             value={
               gameState.currentTeam
-                ? `${gameState.currentTeam.name} (${gameState.currentTeam.abbreviation})`
+                ? gameState.currentTeam.abbreviation
                 : "Spinning..."
             }
+            detail={gameState.currentTeam ? gameState.currentTeam.name : undefined}
           />
         </div>
-        <div>
+        <div className="min-w-0">
           <SpinCard
             isAnimating={
               spinAnimationTarget === "round" || spinAnimationTarget === "era"
@@ -1259,29 +1260,52 @@ function RespinButton({
   return (
     <button
       data-testid={testId}
-      className="outline-button inline-flex min-h-11 shrink-0 items-center justify-center px-3 text-xs"
+      className="outline-button inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full p-0"
       type="button"
       disabled={disabled}
       aria-busy={isAnimating}
-      aria-label={`${label} ${buttonText}`}
+      title={`${label} ${buttonText}`}
       onClick={() => {
         void onClick();
       }}
     >
-      {buttonText}
+      <RespinIcon className={isAnimating ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+      <span className="sr-only">
+        {label} {buttonText}
+      </span>
     </button>
+  );
+}
+
+function RespinIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      viewBox="0 0 24 24"
+    >
+      <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+      <path d="M21 3v6h-6" />
+    </svg>
   );
 }
 
 function SpinCard({
   isAnimating,
   action,
+  detail,
   label,
   testId,
   value,
 }: {
   isAnimating: boolean;
   action?: ReactNode;
+  detail?: string;
   label: string;
   testId: string;
   value: string;
@@ -1296,13 +1320,20 @@ function SpinCard({
         isAnimating ? "is-generating" : ""
       }`}
     >
-      <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="mb-1 flex items-center justify-between gap-3">
         <p className="font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em] text-muted">
           {label}
         </p>
         {action}
       </div>
-      <p className="min-w-0 break-words text-xl font-bold sm:text-2xl">{value}</p>
+      <p className="flex min-w-0 items-baseline gap-2" title={detail ?? value}>
+        <span className="shrink-0 text-xl font-bold sm:text-2xl">{value}</span>
+        {detail ? (
+          <span className="min-w-0 truncate text-sm font-medium text-muted">
+            {detail}
+          </span>
+        ) : null}
+      </p>
     </div>
   );
 }
@@ -1365,7 +1396,7 @@ function SpinAnimationDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="spin-animation-dialog-title"
-        className="spin-dialog game-panel p-6 sm:p-8"
+        className="spin-dialog game-panel p-5 sm:p-6"
         data-animation-state={target}
         data-motion-mode={prefersReducedMotion ? "reduced" : "full"}
         data-testid="spin-animation-dialog"
@@ -1417,16 +1448,11 @@ function SpinWheelColumn({
 
   return (
     <div
-      className={`spin-wheel-column p-4 ${settled ? "is-settled" : ""}`}
+      className={`spin-wheel-column p-3 ${settled ? "is-settled" : ""}`}
       data-testid={testId}
     >
       <div className="spin-wheel-window">
-        <p
-          className="spin-wheel-value"
-          key={visibleLabel}
-        >
-          {visibleLabel}
-        </p>
+        <p className="spin-wheel-value">{visibleLabel}</p>
       </div>
     </div>
   );

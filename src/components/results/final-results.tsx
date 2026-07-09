@@ -38,10 +38,6 @@ export function FinalResults({
           <h1 className="screen-title text-5xl sm:text-7xl">
             Final Results
           </h1>
-          <p className="body-copy mt-6 max-w-2xl text-lg leading-8">
-            Your finished GOAT build is locked in. Every rating below came from
-            the player version you chose for that category.
-          </p>
         </header>
 
         <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">

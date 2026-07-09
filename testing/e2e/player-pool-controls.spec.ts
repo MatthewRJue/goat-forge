@@ -61,7 +61,7 @@ test("player pool controls search, filter, sort, clear, and preserve playability
     .click();
 
   await expect(
-    page.getByRole("heading", { name: "Round 2 of 5" }),
+    page.getByRole("heading", { name: "Round 2" }),
   ).toBeVisible();
   await expect(page.getByTestId("completed-category")).toContainText(
     "Magic Johnson",
