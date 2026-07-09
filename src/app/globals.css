@@ -426,15 +426,6 @@ a {
   position: relative;
 }
 
-.spin-wheel-window::after {
-  border-bottom: 1.5px solid rgb(var(--action-rgb) / 0.45);
-  border-top: 1.5px solid rgb(var(--action-rgb) / 0.45);
-  content: "";
-  inset: 34% 0.75rem;
-  pointer-events: none;
-  position: absolute;
-}
-
 .spin-wheel-value {
   align-items: center;
   color: var(--foreground);
