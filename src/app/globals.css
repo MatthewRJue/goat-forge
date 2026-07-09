@@ -5,117 +5,153 @@
   color-scheme: light;
 
   /* Theme source of truth. React components should use semantic utilities. */
-  --background: #f4f1ea;
-  --foreground: #1f1b16;
-  --surface: #faf8f3;
+  --background: #eef1f9;
+  --foreground: #1b1e2e;
+  --surface: #f7f9fd;
   --surface-strong: #ffffff;
-  --surface-soft: #eae5da;
-  --border: #ddd6c8;
-  --accent: #bc4d0a;
-  --action: #ec5c0d;
-  --muted: #6d675d;
-  --success: #1d7a4f;
-  --warning: #986011;
-  --danger: #bb2430;
+  --surface-soft: #e3e7f4;
+  --border: #cdd4e8;
+  --accent: #0f766e;
+  --action: #4f42d8;
+  --muted: #5a6178;
+  --success: #15803d;
+  --warning: #b45309;
+  --danger: #dc2626;
 
-  --background-rgb: 244 241 234;
-  --foreground-rgb: 31 27 22;
-  --surface-rgb: 250 248 243;
+  --background-rgb: 238 241 249;
+  --foreground-rgb: 27 30 46;
+  --surface-rgb: 247 249 253;
   --surface-strong-rgb: 255 255 255;
-  --surface-soft-rgb: 234 229 218;
-  --border-rgb: 221 214 200;
-  --accent-rgb: 188 77 10;
-  --action-rgb: 236 92 13;
-  --muted-rgb: 109 103 93;
-  --success-rgb: 29 122 79;
-  --warning-rgb: 152 96 17;
-  --danger-rgb: 187 36 48;
-  --shadow-rgb: 95 75 51;
+  --surface-soft-rgb: 227 231 244;
+  --border-rgb: 205 212 232;
+  --accent-rgb: 15 118 110;
+  --action-rgb: 79 66 216;
+  --muted-rgb: 90 97 120;
+  --success-rgb: 21 128 61;
+  --warning-rgb: 180 83 9;
+  --danger-rgb: 220 38 38;
+  --shadow-rgb: 42 48 80;
 
-  --action-contrast: #2a1608;
-  --disabled-foreground: #98907f;
-  --focus-ring: #bc4d0a;
-  --shell-gradient-start: #f8f5ee;
-  --shell-gradient-mid: #f4f1ea;
-  --shell-gradient-end: #ece5d6;
+  --action-contrast: #ffffff;
+  --disabled-foreground: #9aa1b5;
+  --focus-ring: #4f42d8;
+  --shell-gradient-start: #f3f5fb;
+  --shell-gradient-mid: #eef1f9;
+  --shell-gradient-end: #e6e6f5;
+
+  /* Per-attribute category colors */
+  --cat-ath: #e11d48;
+  --cat-sho: #d97706;
+  --cat-fin: #16a34a;
+  --cat-ply: #c026d3;
+  --cat-def: #2563eb;
+  --cat-ath-rgb: 225 29 72;
+  --cat-sho-rgb: 217 119 6;
+  --cat-fin-rgb: 22 163 74;
+  --cat-ply-rgb: 192 38 211;
+  --cat-def-rgb: 37 99 235;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --background: #141210;
-    --foreground: #f4efe6;
-    --surface: #1b1815;
-    --surface-strong: #242019;
-    --surface-soft: #191613;
-    --border: #3a332a;
-    --accent: #fb923c;
-    --action: #f97316;
-    --muted: #a89f92;
-    --success: #43c383;
-    --warning: #eab654;
-    --danger: #f26a6a;
+    --background: #141833;
+    --foreground: #eef0fb;
+    --surface: #1b2040;
+    --surface-strong: #232a52;
+    --surface-soft: #171c3a;
+    --border: #363f73;
+    --accent: #2dd4bf;
+    --action: #6a5be0;
+    --muted: #a3abce;
+    --success: #4ade80;
+    --warning: #fbbf24;
+    --danger: #f87171;
 
-    --background-rgb: 20 18 16;
-    --foreground-rgb: 244 239 230;
-    --surface-rgb: 27 24 21;
-    --surface-strong-rgb: 36 32 25;
-    --surface-soft-rgb: 25 22 19;
-    --border-rgb: 58 51 42;
-    --accent-rgb: 251 146 60;
-    --action-rgb: 249 115 22;
-    --muted-rgb: 168 159 146;
-    --success-rgb: 67 195 131;
-    --warning-rgb: 234 182 84;
-    --danger-rgb: 242 106 106;
+    --background-rgb: 20 24 51;
+    --foreground-rgb: 238 240 251;
+    --surface-rgb: 27 32 64;
+    --surface-strong-rgb: 35 42 82;
+    --surface-soft-rgb: 23 28 58;
+    --border-rgb: 54 63 115;
+    --accent-rgb: 45 212 191;
+    --action-rgb: 106 91 224;
+    --muted-rgb: 163 171 206;
+    --success-rgb: 74 222 128;
+    --warning-rgb: 251 191 36;
+    --danger-rgb: 248 113 113;
     --shadow-rgb: 0 0 0;
 
-    --action-contrast: #1c1108;
-    --disabled-foreground: #786f61;
-    --focus-ring: #fb923c;
-    --shell-gradient-start: #191613;
-    --shell-gradient-mid: #141210;
-    --shell-gradient-end: #100e0c;
+    --action-contrast: #ffffff;
+    --disabled-foreground: #6d759c;
+    --focus-ring: #99a4ff;
+    --shell-gradient-start: #171c3a;
+    --shell-gradient-mid: #141833;
+    --shell-gradient-end: #0f1228;
+
+    /* Per-attribute category colors */
+    --cat-ath: #fb7185;
+    --cat-sho: #fbbf24;
+    --cat-fin: #4ade80;
+    --cat-ply: #e879f9;
+    --cat-def: #60a5fa;
+    --cat-ath-rgb: 251 113 133;
+    --cat-sho-rgb: 251 191 36;
+    --cat-fin-rgb: 74 222 128;
+    --cat-ply-rgb: 232 121 249;
+    --cat-def-rgb: 96 165 250;
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --background: #141210;
-  --foreground: #f4efe6;
-  --surface: #1b1815;
-  --surface-strong: #242019;
-  --surface-soft: #191613;
-  --border: #3a332a;
-  --accent: #fb923c;
-  --action: #f97316;
-  --muted: #a89f92;
-  --success: #43c383;
-  --warning: #eab654;
-  --danger: #f26a6a;
+  --background: #141833;
+  --foreground: #eef0fb;
+  --surface: #1b2040;
+  --surface-strong: #232a52;
+  --surface-soft: #171c3a;
+  --border: #363f73;
+  --accent: #2dd4bf;
+  --action: #6a5be0;
+  --muted: #a3abce;
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --danger: #f87171;
 
-  --background-rgb: 20 18 16;
-  --foreground-rgb: 244 239 230;
-  --surface-rgb: 27 24 21;
-  --surface-strong-rgb: 36 32 25;
-  --surface-soft-rgb: 25 22 19;
-  --border-rgb: 58 51 42;
-  --accent-rgb: 251 146 60;
-  --action-rgb: 249 115 22;
-  --muted-rgb: 168 159 146;
-  --success-rgb: 67 195 131;
-  --warning-rgb: 234 182 84;
-  --danger-rgb: 242 106 106;
+  --background-rgb: 20 24 51;
+  --foreground-rgb: 238 240 251;
+  --surface-rgb: 27 32 64;
+  --surface-strong-rgb: 35 42 82;
+  --surface-soft-rgb: 23 28 58;
+  --border-rgb: 54 63 115;
+  --accent-rgb: 45 212 191;
+  --action-rgb: 106 91 224;
+  --muted-rgb: 163 171 206;
+  --success-rgb: 74 222 128;
+  --warning-rgb: 251 191 36;
+  --danger-rgb: 248 113 113;
   --shadow-rgb: 0 0 0;
 
-  --action-contrast: #1c1108;
-  --disabled-foreground: #786f61;
-  --focus-ring: #fb923c;
-  --shell-gradient-start: #191613;
-  --shell-gradient-mid: #141210;
-  --shell-gradient-end: #100e0c;
+  --action-contrast: #ffffff;
+  --disabled-foreground: #6d759c;
+  --focus-ring: #99a4ff;
+  --shell-gradient-start: #171c3a;
+  --shell-gradient-mid: #141833;
+  --shell-gradient-end: #0f1228;
+
+  /* Per-attribute category colors */
+  --cat-ath: #fb7185;
+  --cat-sho: #fbbf24;
+  --cat-fin: #4ade80;
+  --cat-ply: #e879f9;
+  --cat-def: #60a5fa;
+  --cat-ath-rgb: 251 113 133;
+  --cat-sho-rgb: 251 191 36;
+  --cat-fin-rgb: 74 222 128;
+  --cat-ply-rgb: 232 121 249;
+  --cat-def-rgb: 96 165 250;
 }
 
 @theme inline {
@@ -141,6 +177,48 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+
+  /* Category color contract: cat-* classes override per attribute. */
+  --cat: var(--accent);
+  --cat-rgb: var(--accent-rgb);
+}
+
+.cat-athleticism {
+  --cat: var(--cat-ath);
+  --cat-rgb: var(--cat-ath-rgb);
+}
+
+.cat-shooting {
+  --cat: var(--cat-sho);
+  --cat-rgb: var(--cat-sho-rgb);
+}
+
+.cat-finishing {
+  --cat: var(--cat-fin);
+  --cat-rgb: var(--cat-fin-rgb);
+}
+
+.cat-playmaking {
+  --cat: var(--cat-ply);
+  --cat-rgb: var(--cat-ply-rgb);
+}
+
+.cat-defense {
+  --cat: var(--cat-def);
+  --cat-rgb: var(--cat-def-rgb);
+}
+
+.cat-ink {
+  color: var(--cat);
+}
+
+.cat-bar {
+  box-shadow: inset 3px 0 0 rgb(var(--cat-rgb) / 0.9);
+}
+
+.cat-chip {
+  border-color: rgb(var(--cat-rgb) / 0.35);
+  background: rgb(var(--cat-rgb) / 0.08);
 }
 
 button,
@@ -153,7 +231,7 @@ a {
   background:
     radial-gradient(
       1100px 460px at 50% -160px,
-      rgb(var(--action-rgb) / 0.1),
+      rgb(var(--action-rgb) / 0.12),
       transparent 70%
     ),
     linear-gradient(
@@ -180,7 +258,7 @@ a {
   width: 76rem;
   height: 76rem;
   transform: translateX(-50%);
-  border: 1.5px solid rgb(var(--action-rgb) / 0.16);
+  border: 1.5px solid rgb(var(--accent-rgb) / 0.22);
   border-radius: 999px;
   pointer-events: none;
   z-index: 0;
@@ -568,36 +646,44 @@ a {
   cursor: not-allowed;
 }
 
+.stat-card .category-name {
+  color: var(--cat);
+}
+
 .stat-card.is-ready {
   border-color: rgb(var(--action-rgb) / 0.6);
   background:
     linear-gradient(
       135deg,
-      rgb(var(--action-rgb) / 0.1),
+      rgb(var(--cat-rgb) / 0.12),
       transparent 65%
     ),
     rgb(var(--surface-strong-rgb) / 0.65);
-  box-shadow: inset 3px 0 0 var(--action);
+  box-shadow: inset 3px 0 0 rgb(var(--cat-rgb) / 0.95);
 }
 
 .stat-card.is-complete {
-  border-color: rgb(var(--success-rgb) / 0.5);
+  border-color: rgb(var(--cat-rgb) / 0.5);
   background:
     linear-gradient(
       135deg,
-      rgb(var(--success-rgb) / 0.1),
+      rgb(var(--cat-rgb) / 0.12),
       transparent 65%
     ),
     rgb(var(--surface-strong-rgb) / 0.65);
-  box-shadow: inset 3px 0 0 rgb(var(--success-rgb) / 0.75);
+  box-shadow: inset 3px 0 0 rgb(var(--cat-rgb) / 0.95);
 }
 
 .stat-card.is-locked {
   background: rgb(var(--surface-soft-rgb) / 0.4);
   border-style: dashed;
+  box-shadow: inset 3px 0 0 rgb(var(--cat-rgb) / 0.3);
 }
 
-.stat-card.is-locked .category-name,
+.stat-card.is-locked .category-name {
+  opacity: 0.65;
+}
+
 .stat-card.is-locked .category-title,
 .stat-card.is-locked .category-detail {
   color: var(--disabled-foreground);

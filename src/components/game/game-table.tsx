@@ -1112,9 +1112,9 @@ function PlayerCard({
           {MVP_CATEGORIES.map((category) => (
             <div
               key={category}
-              className="stat-chip min-w-0 px-1 py-2 text-center sm:w-14"
+              className={`stat-chip cat-chip cat-${category} min-w-0 px-1 py-2 text-center sm:w-14`}
             >
-              <p className="text-[0.55rem] font-bold uppercase leading-none text-muted sm:text-[0.6rem]">
+              <p className="cat-ink text-[0.55rem] font-bold uppercase leading-none sm:text-[0.6rem]">
                 <span className="sr-only">{categoryLabels[category]}</span>
                 <span aria-hidden="true">{categoryShortLabels[category]}</span>
               </p>
@@ -1480,7 +1480,7 @@ function ProgressPanel({
               key={category}
               type="button"
               disabled={!canApply}
-              className={`stat-card w-full p-4 text-left ${
+              className={`stat-card cat-${category} w-full p-4 text-left ${
                 completedCategory
                   ? "is-complete"
                   : canApply
@@ -1493,7 +1493,7 @@ function ProgressPanel({
             >
               <span className="flex items-start justify-between gap-3">
                 <span className="min-w-0">
-                  <span className="category-name block font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em] text-accent">
+                  <span className="category-name block font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em]">
                     {categoryLabels[category]}
                   </span>
                   <span className="category-title mt-2 block truncate text-base font-bold text-foreground">
@@ -1505,7 +1505,7 @@ function ProgressPanel({
                     </span>
                   ) : null}
                 </span>
-                <span className="stat-chip min-w-16 px-3 py-2 text-center">
+                <span className="stat-chip cat-chip min-w-16 px-3 py-2 text-center">
                   <span className="block text-[0.6rem] font-bold uppercase tracking-[0.12em] text-muted">
                     Rating
                   </span>

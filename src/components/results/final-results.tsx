@@ -73,7 +73,7 @@ export function FinalResults({
                 <dt className="font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em] text-muted">
                   Final Score
                 </dt>
-                <dd className="mt-2 font-mono text-6xl font-bold text-accent">
+                <dd className="mt-2 font-mono text-6xl font-bold text-warning">
                   {finalScore}
                 </dd>
               </div>
@@ -113,11 +113,11 @@ function ResultCategoryRow({
   return (
     <article
       data-testid="final-result-category"
-      className="stat-card is-complete p-4"
+      className={`stat-card is-complete cat-${completedCategory.category} p-4`}
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="category-name font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em] text-accent">
+          <h3 className="category-name font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em]">
             {categoryLabels[completedCategory.category]}
           </h3>
           <p
@@ -138,7 +138,7 @@ function ResultCategoryRow({
         </div>
         <div
           data-testid="final-result-rating"
-          className="stat-chip min-w-20 px-3 py-2 text-center"
+          className="stat-chip cat-chip min-w-20 px-3 py-2 text-center"
         >
           <p className="text-[0.6rem] font-bold uppercase tracking-[0.12em] text-muted">
             Rating

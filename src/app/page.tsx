@@ -1,11 +1,11 @@
 import Link from "next/link";
 
 const attributes = [
-  "Athleticism",
-  "Shooting",
-  "Finishing",
-  "Playmaking",
-  "Defense",
+  { id: "athleticism", label: "Athleticism" },
+  { id: "shooting", label: "Shooting" },
+  { id: "finishing", label: "Finishing" },
+  { id: "playmaking", label: "Playmaking" },
+  { id: "defense", label: "Defense" },
 ];
 
 export default function Home() {
@@ -46,16 +46,16 @@ export default function Home() {
           <ul className="space-y-2">
             {attributes.map((attribute, index) => (
               <li
-                key={attribute}
-                className="stat-card flex items-center gap-4 px-4 py-3"
+                key={attribute.id}
+                className={`stat-card cat-${attribute.id} cat-bar flex items-center gap-4 px-4 py-3`}
               >
-                <span className="font-mono text-xs font-bold text-accent">
+                <span className="cat-ink font-mono text-xs font-bold">
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <span className="flex-1 text-base font-bold text-foreground">
-                  {attribute}
+                  {attribute.label}
                 </span>
-                <span className="stat-chip min-w-12 px-2 py-1 text-center font-mono text-sm font-bold text-muted">
+                <span className="stat-chip cat-chip min-w-12 px-2 py-1 text-center font-mono text-sm font-bold text-muted">
                   --
                 </span>
               </li>
